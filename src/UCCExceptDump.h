@@ -83,13 +83,12 @@ void	HeapInUse( int & errorRet, unsigned int & heap_count, unsigned long & block
 class KxStackTrace
 {
 public :
-
-#ifdef	UNIX
-	void	POSIX_KxStackTrace();
-#endif
-
-#ifdef	WIN32
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(WIN32) || defined(CYGWIN)
 	void	Win32_KxStackTrace();
+#else
+	void	POSIX_KxStackTrace();
 #endif
 
 	unsigned int	stack_trace_count;

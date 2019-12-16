@@ -636,7 +636,9 @@ int CCobolCounter::LanguageSpecificProcess(filemap* fmap, results* result, filem
             }
             if (new_loop)
             {
-                if ((int)result->cmplx_nestloop_count.size() < loopEnd.size())
+                // Modification: Spring 2016 - To fix warning 'comparision between signed
+                // and unsigned integer'.
+                if ((int)result->cmplx_nestloop_count.size() < (int)loopEnd.size())
                     result->cmplx_nestloop_count.push_back(1);
                 else
                     result->cmplx_nestloop_count[loopEnd.size()-1]++;
@@ -843,7 +845,7 @@ int CCobolCounter::CountComplexity( filemap* fmap, results* result )
 {
 	filemap::iterator fit;
 	unsigned int cnt, cyclomatic_cnt = 0, cyclomatic_logic_cnt = 0, ignore_cyclomatic_cnt = 0;
-	int tmpc;
+	// int tmpc; // Modification - Spring 2016 - tmpc not used anywhere here
 	string line;
 	string exclude = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_$";
 	bool line_skipped = false;
@@ -909,7 +911,7 @@ int CCobolCounter::CountComplexity( filemap* fmap, results* result )
 		CUtil::CountTally(line, cmplx_cond_list, cnt, 1, exclude, "", "", &result->cmplx_cond_count, casesensitive);
 		result->cmplx_cond_lines += cnt;
 
-		tmpc = (int)CUtil::FindKeyword( line, "END-IF" );
+		//tmpc = (int)CUtil::FindKeyword( line, "END-IF" ); // Modification - Spring 2016 - tmpc not used
 		//result->cmplx_cond_lines = 0;
 		
 

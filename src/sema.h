@@ -13,6 +13,7 @@
 //	#include <atomic>
 
 #include <cassert>
+#include <cerrno>
 
 
 #if defined(_WIN32)

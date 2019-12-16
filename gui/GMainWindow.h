@@ -11,6 +11,9 @@
 #include <QList>
 #include <QListWidgetItem>
 #include <QMainWindow>
+#include <QDropEvent>
+#include <QDragEnterEvent>
+#include <QMimeData>
 #include <QMap>
 #include <QModelIndexList>
 #include <QProgressBar>
@@ -18,11 +21,12 @@
 #include "GExtensionDialog.h"
 #include "GTableDialog.h"
 #include "ui_GMainWindow.h"
-//wei
-#include "GSideBySideDialog.h"
+
 
 #define FILE_LIST_A "fileListA.txt"
 #define FILE_LIST_B "fileListB.txt"
+
+class GSideBySideDialog;
 
 //! Main window.
 /*!
@@ -101,6 +105,10 @@ private:
 	bool writeExtensionsFile();
 	bool parsePreferencesFile();
 	bool writePreferencesFile();
+
+protected:
+    void dropEvent(QDropEvent *ev);
+    void dragEnterEvent(QDragEnterEvent *ev);
 };
 
 #endif // GMAINWINDOW_H

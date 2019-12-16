@@ -1,6 +1,8 @@
 #include "CmpMngrHtml.h"
 
 
+/* Modification: 2016.01; USC
+   Updated to fix spacing for empty line breaks. Needed to support move to webengine*/
 /* HTML Pre-amble for all html files generated... */
 #define HTML_HEADER         "   <!DOCTYPE html>"\
                             "   <html>"\
@@ -75,6 +77,15 @@
                             "           display: inline-block;"\
                             "           padding-left: 10px;"\
                             "       }\n"\
+                            "       br {"\
+                            "           line-height: 1.6;"\
+                            "           vertical-align: middle;"\
+                            "           unicode-bidi: embed;"\
+                            "           font-family: monospace;"\
+                            "           white-space: pre;"\
+                            "           display: table-row;"\
+                            "           border-bottom: 1px dotted LightGray;"\
+                            "       }"\
                             "   </style>"\
                             "   </head>"\
                             "   <body>"

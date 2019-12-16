@@ -28,6 +28,11 @@
 * See UCC_Multithreading_Notes.doc for older Design and Performance details.
 */
 
+/* Modification: 2016.01; USC
+*   Fixed mingw 4.9.1 compilation errors */
+#ifdef WIN32
+#include <system_error>
+#endif
 // Get Public Thread interfaces.  This MUST be first for this file.
 #include "UCCThread.h"
 
@@ -984,7 +989,7 @@ Of couse, I may have missed a few spots...
 						else
 							oneline = CUtil::TrimString( oneline, 1 );	// trim Trailing only
 						if ( oneline.size() )
-							oneline = CUtil::ReplaceSmartQuotes( oneline );
+							CUtil::ReplaceSmartQuotes( oneline );
 
 						// Use lineElement inside the call to push_back to prevent memory leaks
 						// This will show up for a Debug build but may not show for a Release build
@@ -1755,7 +1760,7 @@ void ReadSrcFile( const unsigned int					threadIdx,
 				//	oneline = CUtil::TrimString( oneline, 1 );	// trim Trailing only
 
 				if ( oneline.size() )
-					oneline = CUtil::ReplaceSmartQuotes(oneline);    // Modification: 2011.10
+					CUtil::ReplaceSmartQuotes(oneline);    // Modification: 2011.10
 				
 				// Moved element(lineNum, oneline); as lineElement  
 				// inside call below to prevent Debug build memory leaks.

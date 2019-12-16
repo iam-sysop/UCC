@@ -5,6 +5,9 @@
 * This file contains the utility class static methods.
 */
 
+/* Modification: 2016.01; USC
+*   Fixed mingw 4.9.1 compilation errors */
+#include <time.h>
 #include "UCCBeforeLibraryIncludes.h"    // Modification: 2015.12
 #include <algorithm>
 #include <cstring>
@@ -478,7 +481,8 @@ static bool		useLibraryToLower = false;
 void CUtil::InitToLower()
 {
 	// Call expensive tolower library call just to fill in array
-	for ( int j = 0; j < ( sizeof( lowerChars ) / sizeof( lowerChars[0] ) ); j++ )
+    // Modification: Spring 2016 - 'j' can be unsinged int to avoid warning
+	for ( unsigned int j = 0; j < ( sizeof( lowerChars ) / sizeof( lowerChars[0] ) ); j++ )
 	{
 		lowerChars[ j ] = (unsigned char)( (unsigned int)( tolower( j ) ) );
 	}
@@ -1593,14 +1597,15 @@ string CUtil::ClearRedundantSpaces(const string &str)
 *    Version 2011.10
 *    Revised 2015.12  Compiles clean with MS Visual C++ -Wall
 */
-string CUtil::ReplaceSmartQuotes(const string &str)
+
+// MAke the change to do the below in-place
+void CUtil::ReplaceSmartQuotes( string &str)
 {
-    string str1 = str;
-    std::replace( str1.begin(), str1.end(), static_cast<char>(static_cast<unsigned char>(145)), '\'' );
-    std::replace( str1.begin(), str1.end(), static_cast<char>(static_cast<unsigned char>(146)), '\'' );
-    std::replace( str1.begin(), str1.end(), static_cast<char>(static_cast<unsigned char>(147)), '\"' );
-    std::replace( str1.begin(), str1.end(), static_cast<char>(static_cast<unsigned char>(148)), '\"' );
-    return str1;
+    std::replace( str.begin(), str.end(), static_cast<char>(static_cast<unsigned char>(145)), '\'' );
+    std::replace( str.begin(), str.end(), static_cast<char>(static_cast<unsigned char>(146)), '\'' );
+    std::replace( str.begin(), str.end(), static_cast<char>(static_cast<unsigned char>(147)), '\"' );
+    std::replace( str.begin(), str.end(), static_cast<char>(static_cast<unsigned char>(148)), '\"' );
+    return;
 }
 
 
@@ -2209,13 +2214,15 @@ void CUtil::SemanticFormat(string &statement)
     string right;
     string eq = "==", ne = "!=", eqT = "==1", eqF = "==0", concat_op_and = "&&", concat_op_or="||";
 
-    unsigned int eq_len = eq.length();
-    unsigned int ne_len = ne.length();
-    unsigned int eq_pos = (unsigned int)(-1), ne_pos = (unsigned int)(-1);
-    unsigned int tnum_len = string("1").length();
-    unsigned int tstr_len = string("true").length();
-    unsigned int fnum_len = string("0").length();
-    unsigned int fstr_len = string("false").length();
+    // Modification: Spring 2016 - Below variables are changed from 'unsigned int' to 'size_t' to 
+    // avoid warningi(comparisonof constant and unsigned int is always true) on clang++ compiler.
+    size_t eq_len = eq.length();
+    size_t ne_len = ne.length();
+    size_t eq_pos = (size_t)(-1), ne_pos = (size_t)(-1);
+    size_t tnum_len = string("1").length();
+    size_t tstr_len = string("true").length();
+    size_t fnum_len = string("0").length();
+    size_t fstr_len = string("false").length();
 
     statement.erase(remove_if(statement.begin(), statement.end(), ::isspace), statement.end());
 
@@ -2244,7 +2251,7 @@ void CUtil::SemanticFormat(string &statement)
         if(statement[0]=='!'){
             eq_pos = statement.find(eq);
             ne_pos = statement.find(ne);
-            if( eq_pos != (int)(string::npos) ) 
+            if( eq_pos != (string::npos) ) // Modification: Spring 2016 - npos is of type size_t
 			{
                 if(statement.substr(eq_pos + eq_len, tnum_len) == "1" || statement.substr(eq_pos + eq_len, tstr_len) == "true") {
                     statement = statement.substr(1, string::npos) += eqF;
@@ -2252,7 +2259,7 @@ void CUtil::SemanticFormat(string &statement)
                     statement = statement.substr(1, string::npos) += eqT;
                 }
             } 
-			else if( ne_pos != (int)(string::npos) )
+			else if( ne_pos != (string::npos) ) // Modification: Spring 2016 - npos is of type size_t
 			{
                 if(statement.substr(ne_pos + ne_len, tnum_len) == "1" || statement.substr(ne_pos + ne_len, tstr_len) == "true") {
                     statement = statement.substr(1, string::npos) += eqT;

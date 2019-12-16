@@ -17,6 +17,7 @@
 #include "../src/MainObject.h"
 #include "GMainWindow.h"
 #include "GUtil.h"
+#include "GSideBySideDialog.h"
 
 #define MAX_ARGUMENTS 20
 #define ARGUMENT_LENGTH 1024
@@ -38,6 +39,14 @@ GMainWindow::GMainWindow(QWidget *parent, Qt::WindowFlags f)
 	customChanged = false;
 	defaultDirSet = false;
 	execCanceled = false;
+
+#ifdef NO_WEB_SUPPORT
+    /* Modification: 2016.01; USC
+       If there is no Qt Web support (such as mingw in 5.7) we must disable
+       the visual differencing feature
+    */
+    ui.chkVisualDiffResult->setDisabled(true);
+#endif
 
 	ui.splitter->setSizes(QList<int>() << 400 << 0 << 100);
 
@@ -79,6 +88,7 @@ GMainWindow::GMainWindow(QWidget *parent, Qt::WindowFlags f)
 	progressBar->setTextVisible(false);
 	progressBar->setVisible(false);		// initially hidden
 	ui.statusBar->addPermanentWidget(progressBar);
+    setAcceptDrops(true);
 
 	connect(ui.lwFileListA, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(listACustomContextMenuRequested(const QPoint &)));
 	connect(ui.lwFileListB, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(listBCustomContextMenuRequested(const QPoint &)));
@@ -128,7 +138,7 @@ void GMainWindow::on_btnStart_clicked()
     //Qwebviewer
     QString filePathA, filePathB;
 
-	if (ui.lwFileListA->count() < 1 && (!ui.chkDifferencing->isChecked() || ui.lwFileListB->count() < 1))
+    if ((ui.lwFileListA->count() < 1) && (!ui.chkDifferencing->isChecked() || ui.lwFileListB->count() < 1)) //|| (ui.lwFileListA->selectedItems()).length() < 1)
 	{
         QMessageBox::warning(this, tr("At Least 1 Selection Needed"), tr("No files/folders are selected for processing."));
 		return;
@@ -519,6 +529,12 @@ void GMainWindow::on_btnStart_clicked()
 			mAsciiDialog = new GAsciiDialog(ui.txtOutputDir->text(), this);
 			mAsciiDialog->show();
 		}
+
+#ifndef NO_WEB_SUPPORT
+       /* Modification: 2016.01; USC
+	      Can only show if web support is available (this is currently true on
+          all platforms that support Qt except for Qt 5.6 and above with mingw
+       */
         // Qwebviewer: Show side-by-side dailog
         if(ui.chkDifferencing->isChecked() && ui.chkVisualDiffResult->isChecked())
         {
@@ -529,6 +545,7 @@ void GMainWindow::on_btnStart_clicked()
             mSideBySideDialog->show();
         }
         else{}
+#endif
 
         // Get the Time to show
         time( &timeEnd );
@@ -1629,4 +1646,60 @@ bool GMainWindow::writePreferencesFile()
 		file.close();
 	}
 	return(true);
+}
+
+void GMainWindow::dropEvent(QDropEvent *ev)
+{
+    QList<QUrl> urls = ev->mimeData()->urls();
+
+    // Reading the first widget's span. Currently, we have only
+    // three widgets: 1. for list A 2. for list B 3. for filter extensions.
+    // So, if the drop location is not in widget related to A, then it belongs
+    // to list B.
+    QWidget* currDropWidget = ui.splitter->widget(0);
+    QRect currRect;
+    int topLeftX = 0;
+    int topLeftY = 0;
+    int width = 0;
+    int height = 0;
+    QPoint point = ev->pos();
+
+    // Get rectangle properties for first widget.
+    currRect = currDropWidget->geometry();
+    currRect.getRect(&topLeftX, &topLeftY, &width, &height);
+
+    foreach(QUrl url, urls)
+    {
+        // Logic is to get the widget information using
+        //  QWidget * QSplitter::widget(int index) const.
+        // Each widget has a geometry() API which returns QRect using which
+        // we can get starting and ending positions of that widget.
+        // Using this information we compare it with ev->pos->x to check whether
+        // a drop location is inside widget or not.
+        // Note: all this should be done if differencing is checked. Else, we can just add
+        // the files/directories to list A.
+        if (ui.chkDifferencing->isChecked())
+        {
+            if (point.x() > topLeftX && point.x() < topLeftX + width)
+            {
+                ui.lwFileListA->addItem(url.toLocalFile());
+            }
+            else
+            {
+                ui.lwFileListB->addItem(url.toLocalFile());
+            }
+        }
+        else // case for counting
+        {
+            ui.lwFileListA->addItem(url.toLocalFile());
+        }
+    }
+}
+
+void GMainWindow::dragEnterEvent(QDragEnterEvent *ev)
+{
+    if (ev->mimeData()->hasUrls())
+    {
+        ev->acceptProposedAction();
+    }
 }

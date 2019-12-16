@@ -1353,7 +1353,7 @@ void MainObject::CreateExtMap()
 			if ( (*myCounterForEachLanguage)[i]->classtype == WEB)
 			{
 				found = false;
-				for (j = 0; j < (int)webCounter->web_lang_names.size(); j++)
+				for (j = 0; j < webCounter->web_lang_names.size(); j++) // Modification: Spring 2016
 				{
 					if (lang_name.compare(CUtil::ToLower(webCounter->web_lang_names[j])) == 0)
 					{
@@ -2205,7 +2205,9 @@ void MainObject::FindDuplicateFiles(SourceFileList * pFileList, StringVector * d
 #define		UI_REFRESH_INTERVAL		3		// In seconds, do NOT make less than 2
 #define		UI_DUP_COUNT_INTERVAL	20		// Show counts every 20 or every Refresh interval seconds
 
-	SourceFileList::iterator fileList_end = pFileList->end();
+	// Modification: Spring 2016 - this 
+    // variable is not being used. To avoid warnings we are commenting it(left for future use).
+    //SourceFileList::iterator fileList_end = pFileList->end();
 	SourceFileList::iterator i;
 	
 	// Get a list of per Language starting positions for Duplicate checking, WEB has Embedded "files"

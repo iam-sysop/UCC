@@ -1024,6 +1024,8 @@ int CJavascriptCounter::ParseFunctionName(const string &line, string &lastline,
 	if (idx != string::npos)
         {
 		functionStack.pop_back();
+		if (functionStack.size() == 0)
+			return 0;
 		str = functionStack.back().line;
 		fcnt = functionStack.back().lineNumber;
 		if (str != "{")

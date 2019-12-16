@@ -134,7 +134,7 @@ public:
     static string ConvertClearCaseFile( const string &fileName, string & clearCaseTrailer );
     static size_t TruncateLine(size_t length, size_t totalLength, size_t truncate, bool &trunc_flag);
     static string ClearRedundantSpaces(const string &str);
-    static string ReplaceSmartQuotes(const string &str);
+    static void ReplaceSmartQuotes(string &str);
     static bool StartsWith(const string &str, const string &startsWith, bool case_sensitive = true);
     static bool EndsWith(const string &str, const string &endsWith, bool case_sensitive = true);
     static StringVector Split(const string &stringToSplit, const string &delimiter);
@@ -156,3 +156,8 @@ public:
 #endif
 
 #endif
+
+#ifdef _MSC_VER
+#define __func__ __FUNCTION__
+#endif
+

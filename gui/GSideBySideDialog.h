@@ -7,8 +7,12 @@
 #ifndef GSIDEBYSIDEDIALOG_H
 #define GSIDEBYSIDEDIALOG_H
 
+#ifndef NO_WEB_SUPPORT
+
 #include <QDialog>
-#include "ui_GSideBySideDialog.h"
+/* Modification: 2016.01; USC
+   Updated to no longer require UI file, needed for dynamic
+   webkit vs webengine code */
 
 #define HTML_FILE "highlighted_diff.html"
 
@@ -28,12 +32,11 @@ class GSideBySideDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit GSideBySideDialog(const QString &filePathA, const QString &filePathB, const QString &htmlPath, QWidget *parent = 0);
-    ~GSideBySideDialog();
-
-
-private:
-    Ui::GSideBySideDialog *ui;
+/* Modification: 2016.01; USC
+   Minor cosmetic updates */
+    GSideBySideDialog(const QString &filePathA, const QString &filePathB,
+                      const QString &htmlPath, QWidget *parent = 0);
 };
 
+#endif
 #endif // GSIDEBYSIDEDIALOG_H

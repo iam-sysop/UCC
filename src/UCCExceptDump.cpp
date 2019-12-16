@@ -31,8 +31,12 @@
 
 #include "UCCBeforeLibraryIncludes.h"    // Modification: 2015.12
 
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#define		MAX_CALL_FRAMES		128
+
 // Utilities to support checking the Heap.  Implemented for Windows
-#ifdef	WIN32
+#if defined(WIN32) || defined(CYGWIN)
 	#define		WIN32_LEAN_AND_MEAN
 	#include	<Windows.h>
 	#undef		WIN32_LEAN_AND_MEAN
@@ -42,11 +46,7 @@
 	#ifdef	PASCAL
 		#undef	PASCAL
 	#endif
-#endif
-
-#define		MAX_CALL_FRAMES		128
-
-#ifdef	UNIX	// and Linux and Mac
+#else
 	#include	<execinfo.h>
 	void printStackTrace( FILE *out = stderr, unsigned int max_frames = MAX_CALL_FRAMES - 1);
 #endif
@@ -134,12 +134,12 @@ string			parseLineDataBackup;				// No changes to original data for this line
 // See UCCExceptDump.h for KxStackTrace declaration
 KxStackTrace	g_KxStackTrace;
 
-#ifdef	UNIX
-void abortHandler( int signum, siginfo_t* si, void * unused )
-#endif
-
-#ifdef	WIN32
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(WIN32) || defined(CYGWIN)
 void abortHandler( int signum )
+#else
+void abortHandler( int signum, siginfo_t* si, void * unused )
 #endif
 {
 	// associate each signal with a signal name string.
@@ -148,7 +148,9 @@ void abortHandler( int signum )
 	{
 		case SIGABRT: name = "SIGABRT" ; break ;
 		case SIGSEGV: name = "SIGSEGV" ; break ;
-#ifndef	WIN32
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(UNIX) && !defined(CYGWIN)
 		case SIGBUS: name = "SIGBUS" ; break ;
 #endif
 		case SIGILL: name = "SIGILL" ; break ;
@@ -165,10 +167,12 @@ void abortHandler( int signum )
 		fprintf ( stderr, "Caught signal %d\n" , signum );
 
 	// Dump a stack trace.	Will do Windows later.  Randy
-#ifndef	WIN32
-	printStackTrace();
-#else
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(WIN32) || defined(CYGWIN)
 	// StackDump();
+#else
+	printStackTrace();
 #endif
 	// If you caught one of the above signals, it is likely you just
 	// want to quit your program right now.
@@ -231,7 +235,9 @@ $ kill -l
 30) SIGUSR1
 */
 
-#ifdef	WIN32
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(WIN32) || defined(CYGWIN)
 void KxStackTrace::Win32_KxStackTrace()
 {
 	signal ( SIGABRT, abortHandler );
@@ -249,7 +255,9 @@ void KxStackTrace::Win32_KxStackTrace()
 	but provides additional information about the signal, and a
 	little more control over which signals you handle.
 */
-#ifdef	UNIX
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(UNIX) && !defined(CYGWIN)
 void KxStackTrace::POSIX_KxStackTrace()
 {
 /*
@@ -301,7 +309,9 @@ names, passes them to __cxa_demangle() , and prints them out.
 It does it slightly differently for Linux and OsX.
 */
 
-#ifdef	UNIX
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(UNIX) && !defined(CYGWIN)
 #include <execinfo.h>
 #include <errno.h>
 #include <cxxabi.h>
@@ -1131,7 +1141,9 @@ void ShowFileSetStats( const bool useListA, string * pString )
 //void NativeStackDump()
 //{
 
-#ifdef	UNIX
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(UNIX) && !defined(CYGWIN)
 
 // Sample to support clang not sure about g++
 void printStackTrace() 
@@ -1186,11 +1198,11 @@ void Init_StackDump()
 	// Reset stact trace count and 
 	// install appropriate signal handler if available
 	g_KxStackTrace.stack_trace_count = 0;
-#ifdef	WIN32
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */	
+#if defined(WIN32) || defined(CYGWIN)
 	g_KxStackTrace.Win32_KxStackTrace();
-#endif
-
-#ifdef	UNIX
+#else
 	g_KxStackTrace.POSIX_KxStackTrace();
 #endif
 
@@ -1199,7 +1211,9 @@ void Init_StackDump()
 
 	ClearSummaryMsgCounts();
 
-#ifdef	WIN32
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(WIN32) || defined(CYGWIN)
 
 	// Some exceptions bypass the cross platform catch blocks elsewhere
 	// So use a native Windows exception handler to get control
@@ -1232,7 +1246,9 @@ void Init_StackDump()
 void	HeapInUse( int & errorRet, unsigned int & heap_count, unsigned long & block_count, unsigned long long & total_sizes, 
 					bool & validate, const bool in_use )
 {
-#ifdef	WIN32
+/* Modification: 2016.01; USC
+*   Fixed cygwin compilation error w/ exception handling */
+#if defined(WIN32) || defined(CYGWIN)
 	block_count = 0;
 	total_sizes = 0L;
 

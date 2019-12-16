@@ -1,11 +1,31 @@
-#webkit is used in Qt4 for QWebView
-QT		+= core gui webkit
+# Modification: 2016.01; USC
+# Updated included modules to support Qt 5.7 
+QT += core gui
+greaterThan(QT_MAJOR_VERSION, 4) {
+   QT += widgets
+   qtHaveModule(webengine) {
+      QT += webenginewidgets
+   } else {
+      qtHaveModule(webkit) {
+         DEFINES += NEED_WEBKIT_LEGACY
+         QT += webkitwidgets
+      } else {
+         DEFINES += NO_WEB_SUPPORT
+         warning(Compiling with no web support. Visual differencing integration will be disabled!)
+      }
+   }
+} else {
+   DEFINES += NEED_WEBKIT_LEGACY
+   QT += webkit
+}
+
+CONFIG	+= qt warn_on debug_and_release no_batch
+# Modification: 2016.01; USC
+# Fixed mingw 4.9.1 compilation errors
+CONFIG  += c++11
+
 TEMPLATE	= app
 LANGUAGE	= C++
-
-#webkitwidgets is used in Qt5 for QWebView
-CONFIG	+= qt warn_on debug_and_release
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webkitwidgets
 
 DEFINES	+= QTGUI
 
@@ -136,8 +156,7 @@ FORMS += \
 	GAsciiDialog.ui \
 	GExtensionDialog.ui \
 	GMainWindow.ui \
-	GTableDialog.ui \
-	GSideBySideDialog.ui
+	GTableDialog.ui 
 
 RESOURCES += \
 	gucc.qrc
@@ -147,8 +166,9 @@ win32 {
 	UI_DIR = GeneratedFiles
 	RCC_DIR = GeneratedFiles
 	RC_FILE = GUCC.rc
-	# uncomment for MinGW
-	# DEFINES += MINGW
+	#Modification: 2016.01; USC
+        #Fixed mingw 4.9.1 compilation errors
+        DEFINES += WIN32
 }
 unix {
 	UI_DIR = .ui

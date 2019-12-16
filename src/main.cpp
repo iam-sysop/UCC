@@ -79,7 +79,9 @@ int main(int argc, char *argv[])
 	printf( "Here is where you can attach a Debugger." );
 	printf( "\nHit Enter key to continue running in UCC main()\n" );
 
-	char * pChar = gets( keyBuffer );
+    /* Modification: 2016.02; USC
+     *   Fixed VS2015 compilation errors */
+	char * pChar = gets_s( keyBuffer );
 #endif
 
 	// Now that UCC is running without any User input 
@@ -368,7 +370,9 @@ int main(int argc, char *argv[])
 
 	char keyBuffer2[256];
 
-	pChar = gets( keyBuffer2 );
+    /* Modification: 2016.02; USC
+     *   Fixed VS2015 compilation errors */
+	pChar = gets_s( keyBuffer2 );
 #endif
 
 	return retVal;
