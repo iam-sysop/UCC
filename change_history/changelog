@@ -1,0 +1,26 @@
+-------------------------------------------------
+UCC - Unified Code Counter
+-------------------------------------------------
+COPYRIGHT (C) 2006 - 2015                
+Center for Systems and Software Engineering
+University of Southern California
+Salvatori 330, 941 West 37th Place
+Los Angeles, California 90089-0781, USA
+-------------------------------------------------
+
+github repository changelog
+-------------------------------------------------
+
+----
+v2015.12        initial github.com commit:
+
+                GUI BUILD REQUIRES QT 5.4.1 AND
+                CORRESPONDING QT CREATOR
+
+                NO MS VISUAL STUDIO PROJECT 
+                FILES THIS VERSION
+
+
+----
+
+
