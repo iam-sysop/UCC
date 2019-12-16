@@ -25,6 +25,11 @@
 #define OUTPUT_FILE_SUM_CSV   "outfile_summary.csv"
 #define OUTPUT_FILE_CYC_CPLX  "outfile_cyclomatic_cplx.txt"
 #define OUTPUT_FILE_CYC_CPLX_CSV  "outfile_cyclomatic_cplx.csv"
+//Added by Yash Lamba on 09/26/2017
+//#define OUTPUT_FILE_HAL_VOL   "outfile_halstead_vol.txt"
+//#define OUTPUT_FILE_HAL_VOL_CSV              "outfile_halstead_vol.csv"
+#define OUTPUT_FILE_MAINTAIN_INDEX  "outfile_maintainability_index.txt"
+#define OUTPUT_FILE_MAINTAIN_INDEX_CSV  "outfile_maintainability_index.csv"
 //#define LOG_FILENAME		  "log.txt"
 
 
@@ -194,6 +199,9 @@ int PrintComplexityResults( CounterForEachLangType & CounterForEachLanguage,
 							const bool printDuplicates = false);
 
 void PrintDuplicateSummary( const bool useListA = true, const string &outputFileNamePrePend = "" );
+
+int PrintMaintainabilityIndex(const bool useListA, const string &outputFileNamePrePend, const bool printDuplicates);       // Modification: 2017.10
+
 
 string WriteUncountedFile( const string &msg, const string &uncFile, 
 						   const bool useListA, const bool csvOutput, const string outDir );

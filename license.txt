@@ -1,6 +1,6 @@
                  UCC LICENSE
 
-           COPYRIGHT (C) 2006 - 2017              
+           COPYRIGHT (C) 2006 - 2018              
       Center for Systems and Software Engineering
         University of Southern California
        Salvatori 330, 941 West 37th Place

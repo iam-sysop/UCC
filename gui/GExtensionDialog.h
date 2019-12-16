@@ -11,6 +11,7 @@
 #include <QCloseEvent>
 #include <QDialog>
 #include "ui_GExtensionDialog.h"
+#include "ui_GMainWindow.h" //Modification: 2018.04 
 
 //! Extension dialog.
 /*!
@@ -39,9 +40,14 @@ private slots:
     void on_btnRemoveExt_clicked();
 	void on_btnClose_clicked();
 	void closeEvent(QCloseEvent *);
+        void on_pushButton_clicked(); //Modification: 2018.04
+        void on_pushButton_2_clicked(); //Modification: 2018.04 
+
 
 private:
-	Ui::GExtensionDialogClass ui;
+        Ui::GExtensionDialogClass ui; //Modification: 2018.04 
+        Ui::GMainWindowClass ui_main; //Modification: 2018.04
+        bool checkButtonClick; //Modification: 2018.04 
 
 	QMap<QString, QStringList *> *extMapDefault;		//!< Default extension map pointer
 	QMap<QString, QStringList *> *extMapCustom;			//!< Custom extension map pointer

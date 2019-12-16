@@ -21,6 +21,7 @@ class CJavaCounter : public CCJavaCsScalaCounter
 public:
 	// Set the language so base class constructors set values as needed
 	CJavaCounter( string lang = "JAVA" );
+        int GetLineUntilEndOfMultistringIfAny(int curr_line_idx, string &line, filemap &fmap, map<string, unsigned int> &nonfunction_operator_counts);
 
 private:
 // This class is NOT copied or assigned to.

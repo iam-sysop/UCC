@@ -19,6 +19,8 @@
 #include "GUtil.h"
 #include "GSideBySideDialog.h"
 #include "QFileInfo"
+#include "GMainWindow.h"
+
 
 #define MAX_ARGUMENTS 20
 #define ARGUMENT_LENGTH 1024
@@ -40,6 +42,7 @@ GMainWindow::GMainWindow(QWidget *parent, Qt::WindowFlags f)
 	customChanged = false;
 	defaultDirSet = false;
 	execCanceled = false;
+        checkButtonClicked = true;
 
 #ifdef NO_WEB_SUPPORT
     /* Modification: 2016.01; USC
@@ -59,8 +62,8 @@ GMainWindow::GMainWindow(QWidget *parent, Qt::WindowFlags f)
 	ui.btnAddFileB->hide();
 	ui.btnRemoveFileB->hide();
 	ui.btnAddFolderB->hide();
-
-	this->getDefaultExtensions();
+    //Grey out functional differencing on initial screen
+    ui.chkFuncDifferencing->setEnabled(false);	this->getDefaultExtensions();
 	this->extensionsUpdated();
 
 	ui.txtModThreshold->setValidator(new QIntValidator(0, 100, ui.txtModThreshold));
@@ -83,6 +86,8 @@ GMainWindow::GMainWindow(QWidget *parent, Qt::WindowFlags f)
 	ui.txtOutputDir->setText(QDir::toNativeSeparators(QDir::homePath()));
 
 	this->parsePreferencesFile();
+        ui.chkExtensionFile->setChecked(false);
+        ui.txtExtensionFile->setText("");
 
 	progressBar = new QProgressBar();
 	progressBar->setRange(0, 100);
@@ -373,6 +378,11 @@ void GMainWindow::on_btnStart_clicked()
         if(ui.chkVisualDiffResult->isChecked()){
             argList.append("-visualdiff");
         }
+        // Modification 2017.02
+        if(ui.chkFuncDifferencing->isChecked()) 
+        {
+            argList.append("-funcDiff");
+        }
     }
 
 	if (ui.chkDupThreshold->isChecked())
@@ -482,6 +492,16 @@ void GMainWindow::on_btnStart_clicked()
 	if (ui.chkDifferencing->isChecked())
 	{
         doDiff = true;
+           // Modification: 2017.02
+           if (ui.chkFuncDifferencing->isChecked())
+           {
+               isFuncDiff = true;
+           }
+           else
+           {
+               isFuncDiff = false;
+           }
+
 		DiffTool diffTool;
 		diffTool.ConnectUserIF(this);
         diffTool.diffToolProcess(argList.count(), argv);
@@ -495,6 +515,14 @@ void GMainWindow::on_btnStart_clicked()
 
         files_B_count = SourceFileB.size();                             // Modification: 2015.12
         CountPhysicalFiles( SourceFileB, files_B_count );               // Modification: 2015.12
+        // Modification: 2017.02
+        if(isFuncDiff)
+        {
+            SourceFileA.resize(0);
+            SourceFileB.resize(0);
+            DiffTool funcDiffTool;
+            funcDiffTool.funcDiffProcess(argList.count(), argv);
+        }
     }
 	else
 	{
@@ -1025,7 +1053,7 @@ void GMainWindow::listACustomContextMenuRequested(const QPoint &pos)
 	aItem = menu.addAction("Remove All Files/Folders", this, SLOT(removeAllFilesA()));
 	menu.exec(this->mapToGlobal(pos));
     //Warning fix 11.25.16
-    //(void)aItem;
+    (void)aItem;
 }
 
 /*!
@@ -1041,7 +1069,7 @@ void GMainWindow::listBCustomContextMenuRequested(const QPoint &pos)
 	menu.exec(this->mapToGlobal(pos));
 
     //Warning fix
-    //(void)aItem;
+    (void)aItem;
 }
 
 /*!
@@ -1091,6 +1119,9 @@ void GMainWindow::on_chkDifferencing_clicked()
 
 		// enable the modified threshold check box
 		ui.chkModThreshold->setEnabled(true);
+                // Modification: 2017.02
+                //enable the function differencing checkbox
+                ui.chkFuncDifferencing->setEnabled(true);
 	}
 	else
 	{
@@ -1108,6 +1139,9 @@ void GMainWindow::on_chkDifferencing_clicked()
 
 		// disable the modified threshold check box
 		ui.chkModThreshold->setEnabled(false);
+                // Modification: 2017.02
+                //disable the function differencing checkbox
+                ui.chkFuncDifferencing->setEnabled(false);
 	}
 }
 
@@ -1175,10 +1209,81 @@ void GMainWindow::on_chkExtensionFile_clicked()
     }
 	else
 	{
+                ui.txtExtensionFile->setText("");
 		ui.txtExtensionFile->setEnabled(false);
 		ui.btnBrowseExtensionFile->setEnabled(false);
 	}
 }
+
+//Modification: 2018.04 USC starts 
+void GMainWindow::on_createNewFile_clicked()
+{
+    ui.statusBar->showMessage("Creating a new extensions File..");
+	extensionFile = QFileDialog::getSaveFileName(this,
+		tr("Extension File"), extensionFile, tr("Extension File (*.txt)"), 0, QFileDialog::DontConfirmOverwrite);
+    if (extensionFile=="")
+	{
+        ui.chkExtensionFile->setChecked(false);
+        return;
+    }
+		QFileInfo fi(extensionFile);
+
+    if(fi.exists())
+		{
+         QMessageBox::warning(this, tr("File Error"), tr("Extension File Already exists") + extensionFile);
+			}
+    else
+    {QFile file(extensionFile);
+			if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+			{
+                QMessageBox::warning(this, tr("File Error"), tr("Unable to open extension file: ") + extensionFile + "\n" + file.errorString() );
+				ui.statusBar->clearMessage();
+				return;
+			}
+			file.close();
+//    QFileInfo fi(extensionFile);
+    if (!fi.isWritable())
+        QMessageBox::warning(this, tr("File Error"), tr("Unable to write to extension file: ") + extensionFile);
+    else
+    {
+        ui.txtExtensionFile->setText(QDir::toNativeSeparators(extensionFile));
+        this->checkButtonClicked = true;
+        this->parseExtensionsFile();
+        this->on_actionEdit_Extensions_triggered();
+    }
+    }
+
+}
+
+void GMainWindow::on_chooseExisting()
+{   QString extensionFile="extensions.txt";
+    ui.statusBar->showMessage("Opening an existing extension file...");
+    extensionFile = QFileDialog::getOpenFileName(this,
+                                                 tr("Extension File"), extensionFile, tr("Extension File (*.txt)"), 0, QFileDialog::DontConfirmOverwrite);
+    if (extensionFile==""){
+        ui.chkExtensionFile->setChecked(false);
+        return;
+		}
+    QFileInfo fi(extensionFile);
+    if (fi.exists())
+    {QFileInfo fi(extensionFile);
+		if (!fi.isWritable())
+			QMessageBox::warning(this, tr("File Error"), tr("Unable to write to extension file: ") + extensionFile);
+		else
+		{
+			ui.txtExtensionFile->setText(QDir::toNativeSeparators(extensionFile));
+			this->parseExtensionsFile();
+        this->checkButtonClicked = false;
+			this->on_actionEdit_Extensions_triggered();
+    }}
+
+    //if(!fi.exists()){
+    //    QMessageBox::warning(this, tr("File Error"), tr("Extension File Not Found") + extensionFile);
+    //} 
+
+}
+
+//Modification 2018.04 ends 
 
 /*!
 * Prompt user for an extension file.
@@ -1187,42 +1292,71 @@ void GMainWindow::on_btnBrowseExtensionFile_clicked()
 {
 	ui.statusBar->showMessage("Loading file browser...");
 
-	QString extensionFile = ui.txtExtensionFile->text();
-	if (extensionFile.isEmpty())
-		extensionFile = "extensions.txt";
-	extensionFile = QFileDialog::getSaveFileName(this,
-		tr("Extension File"), extensionFile, tr("Extension File (*.txt)"), 0, QFileDialog::DontConfirmOverwrite);
-	defaultDirSet = true;
-	if (!extensionFile.isEmpty())
-	{
-		QFileInfo fi(extensionFile);
-		if (!fi.exists())
-		{
-			int i = QMessageBox::question(this, tr("Create File?"), tr("Specified extension file does not exist.\n Do you want to create it?"));
-			if (i != QMessageBox::Yes)
-			{
-				ui.statusBar->clearMessage();
-				return;
-			}
-			QFile file(extensionFile);
-			if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-			{
-                QMessageBox::warning(this, tr("File Error"), tr("Unable to open extension file: ") + extensionFile + "\n" + file.errorString() );
-				ui.statusBar->clearMessage();
-				return;
-			}
-			file.close();
+//2018.04 Modification starts
+        QMessageBox msgBox;
+    msgBox.setText(tr("Choose New to create a new extension File and Existing to choose an Extension file already present."));
+   msgBox.setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
+    msgBox.setWindowFlags(windowFlags() | Qt::WindowCloseButtonHint);
+    QPushButton* pButtonNew = msgBox.addButton(tr("New"), QMessageBox::ActionRole);
+    QPushButton* pButtonExist = msgBox.addButton(tr("Existing"), QMessageBox::ActionRole);
+
+    QPushButton* pButtonAbort = msgBox.addButton( QMessageBox::Abort);
+    //QAbstractButton* pButtonNew = msgBox.addButton(tr("New"), QMessageBox::AcceptRole);
+    //QAbstractButton* pButtonExist = msgBox.addButton(tr("Existing"), QMessageBox::AcceptRole);
+    //QAbstractButton* pButtonAbort = msgBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
+
+
+    msgBox.exec();
+    //int i = QMessageBox::question(this, tr("Create File?"), tr("If you want to create a new file click YES else click NO for existing file"));
+    if (msgBox.clickedButton()==pButtonNew)
+    {
+        this->on_createNewFile_clicked();
 		}
-		if (!fi.isWritable())
-			QMessageBox::warning(this, tr("File Error"), tr("Unable to write to extension file: ") + extensionFile);
-		else
-		{
-			ui.txtExtensionFile->setText(QDir::toNativeSeparators(extensionFile));
-			this->parseExtensionsFile();
-			this->on_actionEdit_Extensions_triggered();
-		}
+    if(msgBox.clickedButton()==pButtonExist){
+        this->on_chooseExisting();
 	}
-	ui.statusBar->clearMessage();
+    if(msgBox.clickedButton()==pButtonAbort){
+        ui.chkExtensionFile->setChecked(false);
+    }
+
+    //     QString extensionFile = ui.txtExtensionFile->text();
+//     if (extensionFile.isEmpty())
+//             extensionFile = "extensions.txt";
+//     extensionFile = QFileDialog::getSaveFileName(this,
+//             tr("Extension File"), extensionFile, tr("Extension File (*.txt)"), 0, QFileDialog::DontConfirmOverwrite);
+//     defaultDirSet = true;
+//     if (!extensionFile.isEmpty())
+//     {
+//             QFileInfo fi(extensionFile);
+//             if (!fi.exists())
+//             {
+//                     int i = QMessageBox::question(this, tr("Create File?"), tr("Specified extension file does not exist.\n Do you want to create it?"));
+//                     if (i != QMessageBox::Yes)
+//                     {
+//                             ui.statusBar->clearMessage();
+//                             return;
+//                     }
+//                     QFile file(extensionFile);
+//                     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+//                     {
+//                QMessageBox::warning(this, tr("File Error"), tr("Unable to open extension file: ") + extensionFile + "\n" + file.errorString() );
+//                             ui.statusBar->clearMessage();
+//                             return;
+//                     }
+//                     file.close();
+//             }
+//             if (!fi.isWritable())
+//                     QMessageBox::warning(this, tr("File Error"), tr("Unable to write to extension file: ") + extensionFile);
+//             else
+//             {
+//                     ui.txtExtensionFile->setText(QDir::toNativeSeparators(extensionFile));
+//                     this->parseExtensionsFile();
+//                     this->on_actionEdit_Extensions_triggered();
+//             }
+//     }
+//     ui.statusBar->clearMessage();
+ 
+//2018.04 Modification ends
 }
 
 /*!
@@ -1746,6 +1880,7 @@ void GMainWindow::on_txtHeader_textChanged(const QString &arg1)
 {
     QString fileName = ui.txtHeader->text();
     userHeaderFile = fileName.toUtf8().constData();
+	(void)arg1; //Modification: 2018.04: Unused Variable
 
 }
 

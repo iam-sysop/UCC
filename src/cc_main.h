@@ -23,7 +23,7 @@
 
 using namespace std;
 
-#define PRODUCT_REVISION "2017.01"      // Modification: 2017.01
+#define PRODUCT_REVISION "2018.07"      // Modification: 2018.07
 
 #define PHY		0
 #define LOG		1
@@ -228,6 +228,24 @@ typedef pair<unsigned int, unsigned int> UIntPair;
 */
 typedef vector<UIntPair> UIntPairVector;
 
+//Modification: 2018.01 Integration starts
+//! Maps an operator/operand to its count (number of occurrences)
+/*!
+* \typedef OpCountMap
+*
+* Defines a map that maps an operand/operator to the number of times it occurs
+*/
+typedef map<string, unsigned int> OpCountMap;
+
+//! Maps a function to its OpMapCount
+/*!
+* \typedef FuncOpMapCount
+*
+* Defines a map containing the function and its operator/operand counts
+*/
+typedef map<string, OpCountMap> FuncOpCountMap;
+//Modification: 2018.01 Integration ends
+
 //! Class to hold results for each file.
 /*!
 * \class results
@@ -303,6 +321,30 @@ public:
 	filemap cmplx_cycfunct_CC3_count;		//!< Cyclomatic complexity by function
 	filemap cmplx_cycfunct_CC4_count;       //!< Cyclomatic complexity by function
 
+        //Modification: 2018.01 Integration starts
+        // Halstead's volume
+    FuncOpCountMap func_string_and_char_operand_counts;  //!< Counts of string and character operands by function
+    FuncOpCountMap func_word_operand_counts;             //!< Counts of word operands by function (e.g. variable names)
+    FuncOpCountMap func_bool_operand_counts;             //!< Counts of bool operands by function
+    FuncOpCountMap func_number_operand_counts;           //!< Counts of number operands by function
+
+    FuncOpCountMap func_function_operator_counts;        //!< Counts of function operators by function
+    FuncOpCountMap func_nonfunction_operator_counts;     //!< Counts of nonfunction operators by function
+
+    OpCountMap file_string_and_char_operand_counts;      //!< Counts of string and character operands for the whole file
+    OpCountMap file_word_operand_counts;             //!< Counts of variable operands for the whole file 
+    OpCountMap file_bool_operand_counts;                 //!< Counts of bool operands for the whole file
+    OpCountMap file_number_operand_counts;               //!< Counts of number operands for the whole file
+
+    OpCountMap file_function_operator_counts;            //!< Counts of function operators for the whole file
+    OpCountMap file_nonfunction_operator_counts;         //!< Counts of nonfunction operators for the whole file
+
+    map<string, double> func_halsteads_volume;           //!< Maps the functions in the file to their Halstead's volume
+
+    double halsteads_volume;                             //!< Halstead's volume of the file
+
+    //Modification: 2018.01 Integration ends
+        
 	// differencing
 	bool firstDuplicate;				//!< Is this file the first (source) duplicate? (printed in main counting file)
 	bool duplicate;						//!< Is this file a duplicate? (printed in Duplicates counting file)

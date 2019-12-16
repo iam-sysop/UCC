@@ -171,6 +171,9 @@
     <ClCompile Include="src\CObjCCounter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FunctionParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CAdaCounter.h">
@@ -337,6 +340,9 @@
     </ClInclude>
     <ClInclude Include="src\UCCBeforeLibraryIncludes.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FunctionParser.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

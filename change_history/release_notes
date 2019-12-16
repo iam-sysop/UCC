@@ -2,6 +2,49 @@ RELEASE NOTES:
 --------------
 
 -------------------------------------------------
+v2018.7
+-------------------------------------------------
+Finally! Our next, and last, UCC release! We have 
+decided to focus on UCC-Java, so that it has all 
+the features UCC currently does. Hence, I have 
+decided to make this release available to 
+everyone.
+
+Many of you may know or noticed that I, Anandi 
+Hira, have been managing the UCC activities at 
+USC for a while. It is almost time for me to 
+graduate from USC. Therefore, more and more, 
+you will notice Elaine Venson taking over the UCC
+activities at USC.
+
+
+Onto the release, below are the major changes 
+since 2017.01.
+
+Feature Enhancements:
+
+    Maintainability Index calculation
+    Function-level Differencing 
+        (functions/modules within a source file)
+    Re-implemented the extfile functionality in 
+        the GUI
+    New compilation flag added for g++ in Unix
+
+Bug Fixes:
+
+    Fixed issue where UCC was not working for 
+        Scala input files
+    Fixed CAdaCounter bug that accessed invalid 
+        stack elements
+    Fixed issues with incorrect counting of 
+        quotes
+    Fixed issue with differencing not returning 
+        values for Unmodified lines
+
+
+
+
+-------------------------------------------------
 v2017.1
 -------------------------------------------------
 New Features

@@ -240,4 +240,67 @@ CCCounter::CCCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	skip_cmplx_cyclomatic_file_extension_list.push_back(".hpp");
 	//skip_cmplx_cyclomatic_file_extension_list.push_back(".hxx");	// Legacy C++  Enable if you want
 	skip_cmplx_cyclomatic_file_extension_list.push_back(".inc");
+
+        two_char_operator_list.push_back("->");
+        two_char_operator_list.push_back("::");
+
+        for (StringVector::iterator it = cmplx_cyclomatic_list.begin(); it != cmplx_cyclomatic_list.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = cmplx_preproc_list.begin(); it != cmplx_preproc_list.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = directive.begin(); it != directive.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = data_name_list.begin(); it != data_name_list.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = exec_name_list.begin(); it != exec_name_list.end(); it++)
+            keyword_operators.insert(*it);
 }
+
+/*!
+* Returns true if the line ends with '\', which is a way to
+* continue a line of code in C++ (and other languages)to the next line.
+*
+* \param line the string to examine
+* \return true if the line ends with '\' else false
+*/
+bool CCCounter::EndsWithOpenString(const string &line) {
+    if (line.size() > 0 && line[line.size() - 1] == '\\') {
+        return true;
+    }
+    return false;
+}
+
+/*!
+* Concatenates all the physical lines belonging to a multiline string and stores
+* this in the parameter 'line'. If the source line at curr_line_idx does not contain any multiline string
+* then this function will store just that one source line into 'line' and return
+* the original curr_line_idx that was passed into the function.
+*
+* \param curr_line_idx the index of the line in fmap from which to begin
+* \param line the concatenation of all source lines beginning from curr_line_idx until there is no multistring
+* \param fmap the source code for the file
+* \param nonfunction_operator_counts the map for counting the number of times a nonfunction operator (e.g. symbolic operators such as '+' and '[')
+*
+* \return the index into fmap at which the first physical line, at or after curr_line_idx, does not continue to the next source line as a multiline string
+*/
+int CCCounter::GetLineUntilEndOfMultistringIfAny(int curr_line_idx, string &line, filemap &fmap, map<string, unsigned int> &nonfunction_operator_counts) {
+    string line_with_end_of_multistring_if_any = "";
+    //Modification: 2018.01 USC, changed data type to size_t
+    size_t current_line_idx = curr_line_idx ; 
+
+    string curr_line = CUtil::TrimString(fmap[current_line_idx].line, 1);
+    while (EndsWithOpenString(curr_line) && current_line_idx < fmap.size() - 1) {
+        line_with_end_of_multistring_if_any.append(curr_line.substr(0, curr_line.size() - 1));
+        nonfunction_operator_counts["\\"]++;
+        current_line_idx++;
+        curr_line = CUtil::TrimString(fmap[current_line_idx].line, 1);
+    }
+    line = line_with_end_of_multistring_if_any + curr_line;
+
+    return current_line_idx;
+}
+

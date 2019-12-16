@@ -79,6 +79,7 @@ extern	string		cmdLine;							//!< Executed command line string
 extern  string      userHeaderFile;                     //!< Custom Header file path
 
 extern	bool		isDiff;								//!< Has differencing been requested (-d)?
+extern  bool        isFuncDiff;                         //!< Has function level differencing been requested (-funcDiff)? Modification 2017.02
 // extern	bool	visualDiff;							// Visual diff to file and HTML, must explictly declare extern elsewhere
 
 extern	bool		isDup;								//!< Is Duplicate checking wanted ? ( duplicate_threshold >= 0.0 )

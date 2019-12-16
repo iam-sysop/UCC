@@ -41,6 +41,11 @@ class GMainWindow : public QMainWindow
 public:
     GMainWindow(QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~GMainWindow();
+    //Modification: 2018.04 starts 
+    Ui::GMainWindowClass ui;
+    bool checkButtonClicked;
+    bool writeExtensionsFile();
+    //Modification: 2018.04 ends 
 
 signals:
 	void canceledExecution();
@@ -76,6 +81,8 @@ private slots:
 	void on_chkTruncThreshold_clicked();
 	void on_btnBrowseOutputDir_clicked();
 	void on_chkExtensionFile_clicked();
+    void on_chooseExisting(); //Modification: 2018.04 
+    void on_createNewFile_clicked(); //Modification : 2018.04 
 	void on_btnBrowseExtensionFile_clicked();
         void on_chkRamLimit_clicked();
         void on_chkThreads_clicked();
@@ -91,7 +98,7 @@ private slots:
 
 
 private:
-	Ui::GMainWindowClass ui;
+    //Ui::GMainWindowClass ui; //Modification: 2018.04 
 
 	GExtensionDialog *extensionDialog;
 	GAsciiDialog *mAsciiDialog;
@@ -111,7 +118,7 @@ private:
 	void getDefaultExtensions();
 	void extensionsUpdated();
 	bool parseExtensionsFile();
-	bool writeExtensionsFile();
+    //bool writeExtensionsFile(); //Modification: 2018.04
 	bool parsePreferencesFile();
 	bool writePreferencesFile();
 

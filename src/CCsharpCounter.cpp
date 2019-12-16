@@ -195,6 +195,28 @@ CCsharpCounter::CCsharpCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	cmplx_cyclomatic_case_list.push_back("case");
 	cmplx_cyclomatic_switch_list.push_back("switch");
 */
+
+        //Modification: 2018.01 Integration starts
+        two_char_operator_list.push_back("??");
+        two_char_operator_list.push_back("->");
+        two_char_operator_list.push_back("::");
+        two_char_operator_list.push_back("=>");
+
+        one_char_operator_list.push_back("@");
+
+        for (StringVector::iterator it = cmplx_cyclomatic_list.begin(); it != cmplx_cyclomatic_list.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = directive.begin(); it != directive.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = data_name_list.begin(); it != data_name_list.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = exec_name_list.begin(); it != exec_name_list.end(); it++)
+            keyword_operators.insert(*it);
+        //Modification: 2018.01 Integration ends
+        
 }
 
 /*!
@@ -349,3 +371,49 @@ CCsharpAspCounter::CCsharpAspCounter()
 	file_extension.clear();
 	file_extension.push_back(".*csasps");
 }
+
+//Modification: 2018.01 Integration starts
+bool CCsharpCounter::HasOneDoubleQuote(string line) {
+        string two_doublequotes = "\"\"";
+
+        //Modification: 2018.01, changed data type to size_t
+        size_t idx = line.find(two_doublequotes);
+        while (idx != string::npos) {
+                line.replace(idx, 2, "  ");
+                idx += 2;
+                idx = line.find(two_doublequotes, idx);
+        }
+
+    return line.find("\"") != string::npos;
+}
+
+int CCsharpCounter::GetLineUntilEndOfMultistringIfAny(int current_line_idx, string &line, filemap &fmap, map<string, unsigned int> &nonfunction_operator_counts) {
+        string beginning_of_raw_string = "@\"";
+        //Modification: 2018.01, changed data type to size_t
+        size_t idx = line.find(beginning_of_raw_string);
+        size_t curr_line_idx = current_line_idx;
+		(void) nonfunction_operator_counts; //Modification: 2018.01 : Unused argument
+        
+
+        // If not the beginning of a raw string then don't need to do anything
+        if (idx == string::npos)
+                return curr_line_idx;
+
+        if (HasOneDoubleQuote(line.substr(idx + 2)))
+                return curr_line_idx;
+
+        string line_with_end_of_multistring_if_any = "";
+    string curr_line = CUtil::TrimString(fmap[curr_line_idx].line, 0);
+
+    do {
+        line_with_end_of_multistring_if_any.append(curr_line);
+        curr_line_idx++;
+        curr_line = CUtil::TrimString(fmap[curr_line_idx].line, 0);
+    } while (!HasOneDoubleQuote(curr_line) && curr_line_idx < fmap.size() - 2);
+
+    line = line_with_end_of_multistring_if_any + curr_line;
+
+    return curr_line_idx;
+}
+
+//Modification: 2018.01 Integration ends

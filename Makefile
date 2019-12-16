@@ -7,7 +7,7 @@ all:
 		sed -i -e 's///g' tmp/$$file ; \
 	done
 	mkdir -p bin
-	g++ -Wall -o bin/UCC -DUNIX tmp/*.cpp
+	g++ -Wall -std=c++0x -o bin/UCC -DUNIX tmp/*.cpp
 	rm -rf tmp
 #endif
 #notSunOS:

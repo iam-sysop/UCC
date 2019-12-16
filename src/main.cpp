@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
 	double			duplicate_threshold_used = 0.0;
 	unsigned long	files_A_count = 0;
 	unsigned long	files_B_count = 0;
+        isFuncDiff = false; //Modification 2017.02
 
 	Init_StackDump();		// Modification: 2015.12
 	CUtil::InitToLower();	// Initialize to lower helper array
@@ -82,7 +83,10 @@ int main(int argc, char *argv[])
 	printf( "Here is where you can attach a Debugger." );
 	printf( "\nHit Enter key to continue running in UCC main()\n" );
 
-	char * pChar = gets( keyBuffer );
+	//char * pChar = gets( keyBuffer );
+        /* Modification: 2017.02; USC
+         *   Fixed VS2015 compilation errors */
+        char * pChar = gets_s( keyBuffer );
 #endif
 
 	// Now that UCC is running without any User input 
@@ -123,6 +127,16 @@ int main(int argc, char *argv[])
 				// Fall through
 			}
 		}
+                //Modification 2017.02
+                for (int i = 0; i < argc; i++)
+                {
+                        myArg = argv[i];
+                        if(myArg == "-funcDiff")
+                        {
+                                isFuncDiff = true;
+                                break;
+                        }
+                }
 		if (doDiff)
 		{
 			// run the DiffTool to include differencing
@@ -138,6 +152,15 @@ int main(int argc, char *argv[])
 
 			files_B_count = SourceFileB.size();                             // Modification: 2015.12
 			CountPhysicalFiles( SourceFileB, files_B_count );               // Modification: 2015.12
+                        //Modification 2017.02
+                        //Runs function level differencing
+                        if(isFuncDiff)
+                        {
+                            SourceFileA.resize(0);
+                            SourceFileB.resize(0);
+                            DiffTool funcDiffTool;
+                            funcDiffTool.funcDiffProcess(argc, argv);
+                        }
 		}
 		else
 		{
@@ -373,7 +396,10 @@ int main(int argc, char *argv[])
 
 	char keyBuffer2[256];
 
-	pChar = gets( keyBuffer2 );
+	//pChar = gets( keyBuffer2 );
+        /* Modification: 2017.02; USC
+         *   Fixed VS2015 compilation errors */
+        pChar = gets_s( keyBuffer2 );
 #endif
 
 	return retVal;

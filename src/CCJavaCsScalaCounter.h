@@ -30,6 +30,26 @@ protected:
 		bool &inArrayDec, bool &found_for, unsigned int &openBrackets, StringVector &loopLevel);
 	virtual int ParseFunctionName(const string &line, string &lastline,
 		filemap &functionStack, string &functionName, unsigned int &functionCount);
+        
+        //Modification: 2018.01 Integration starts
+        int FindIdxOfNextQuote(const string &line, int start_pos, const char &quote);
+    int RemoveStringsAndChars(string &line, map<string, unsigned int> &string_char_counts, const bool &add_to_count);
+        bool IsEitherFunctionDefinitionOrInvocation(string line, string &function_name);
+        bool IsFunctionDefinition(int line_idx, filemap &fmap, string &function_name);
+        void SumUp(map<string, map<string, unsigned int> > &add_from_counts, map<string, unsigned int> &into_counts);
+        bool IsLastLineOfFunction(map<string, unsigned int> &nonfunction_operator_counts);
+        int CountOperatorsAndOperands(string &line,
+                                  map<string, unsigned int> &string_char_counts,
+                                  map<string, unsigned int> &word_counts,
+                                  map<string, unsigned int> &bool_counts,
+                                  map<string, unsigned int> &number_counts,
+                                  map<string, unsigned int> &function_counts,
+                                  map<string, unsigned int> &nonfunction_operator_counts);
+        void RemoveSymbolsExceptOpenRoundBracketOfFunction(string &line, map<string, unsigned int> &nonfunction_operator_counts, const bool &should_count);
+        bool IsAlphanumericOrUnderscore(const char &c);
+        virtual int GetLineUntilEndOfMultistringIfAny(int, string &, filemap &, map<string, unsigned int> &) { return -1; } //Modification: 2018.05. Integration
+        virtual int FindHalsteadsVolume(filemap fmapModBak, results* result);
+        //Modification: 2018.01 Integration ends
 
 private:
 // This class is NOT copied or assigned to.

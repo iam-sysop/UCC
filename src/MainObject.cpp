@@ -914,6 +914,10 @@ int MainObject::ParseCommandLine(int argc, char *argv[])
 			// Remove any header from the output document
 			remove_Header = true; 
 		}
+                else if( arg == "-funcDiff" ) //Modification 2017.02
+                {
+                    //Ignore
+                }
 		else
 		{
 			// Let User know unable to recognize this arg
@@ -949,7 +953,7 @@ void MainObject::ShowUsage(const string &option, bool do_exit, string * outMsg)
 		msg += "Usage: ucc -v\n\n";
 		msg += " -v: Displays the current version of UCC being executed\n";
 	}
-	else if (option == "-d" || option == "-i1" || option == "-i2" || option == "-t")
+        else if (option == "-d" || option == "-i1" || option == "-i2" || option == "-t" || option == "-funcDiff") //Modification: 2017.02
 	{
 		msg += "Usage: ucc -d [-i1 <fileListA>] [-i2 <fileListB>] [-t <#>]\n\n";
 		msg += " -d: Enables the differencing function. If not specified, only the\n";
@@ -975,6 +979,7 @@ void MainObject::ShowUsage(const string &option, bool do_exit, string * outMsg)
 		msg += "  -visualdiff:     Enables visual differencing. This causes differences between\n";  // Modification: 2014.08s
 		msg += "                   baselines to be logged in diff_dump.txt and highlighted_diff.html\n"; // Modification: 2014.08s
 		msg += "                   for future visual inspection.  Not supported if -threads used.\n";    // Modification: 2015.12
+                msg += "  -funcDiff:       Enables function level differencing. This option works only when -d is enabled.\n";  //Modification: 2017.02
 	}
 	else if (option == "-tdup") // Modification: 2011.10
 	{
@@ -1211,6 +1216,7 @@ void MainObject::ShowUsage(const string &option, bool do_exit, string * outMsg)
 		msg += " -v                 Lists the current version number.\n";
 		msg += " -d                 Runs the differencing function.\n";
 		msg += "                      If not specified, runs the counting function.\n";
+                msg += " -funcDiff          Enables function level differencing. This option works only when -d is enabled.\n";  //Modification 2017.02
 		msg += " -i1 <fileListA>    Filename containing filenames in the Baseline A.\n";
 		msg += " -i2 <fileListB>    Filename containing filenames in the Baseline B.\n";
 		msg += " -t <#>             Specifies the threshold percentage for a modified line.\n";
@@ -1310,7 +1316,6 @@ void MainObject::ReadUserExtMapping(const string &extMapFile)
 	string extension;
 	int flag;
 	string token;
-	size_t pos1, pos2;  // Modification: 2011.10
 	bool foundc = false;
 	vector <string>*comment_delimiters = NULL;/*Vector to store the comment delimiters passed by the ext file */
 	readFile.open(extMapFile.c_str(), ifstream::in);    // Modification: 2011.05
@@ -1383,7 +1388,7 @@ void MainObject::ReadUserExtMapping(const string &extMapFile)
 				{
 					comment_delimiters->clear();
 					string delimiter = line.substr(pos1+1, pos2-pos1-1);
-					int i = 0;
+					size_t i = 0; // Modification: 2018.01 : changed data type to size_t
 					string *s = new string();
                     
                     while (i<delimiter.length())
@@ -1589,7 +1594,8 @@ void MainObject::CreateExtMap()
                     
                     /*Modification: 2016.10;USC, 
 					*Add the line delimiters to the language counter*/
-                    for (int i = 0;i < line_delimiters.size();i++)
+                    //Modification: 2018.01: USC ; Changed data type from int to size_t
+                    for (size_t i = 0;i < line_delimiters.size();i++)
 					{
 						/*char c = line_delimiters[i];
 						string* s = new string(1, c);
@@ -1599,7 +1605,7 @@ void MainObject::CreateExtMap()
 
                     /*Modification: 2016.10;USC
 					*Add the block delimiters to the language counter*/
-                    int i = 0;
+                    size_t i = 0; //Modification: 2018.01: USC ; Changed data type from int to size_t
                     for ( i = 0; i < block_delimiters.size(); i++)
 					{
 						/*char c = block_delimiters[i];
@@ -1750,7 +1756,6 @@ void MainObject::StartThreads(string & start_result_msg)
 */
 int MainObject::ReadAllFiles(StringVector &inputFileVector, string const &inputFileList, const bool useListA)
 {
-	int		error_count = 0;    // Modification: 2015.12
 	string	errList;            // Modification: 2015.12
 	filemap fmap;		// Modification: 2009.01
 	results r;
@@ -2055,6 +2060,10 @@ int MainObject::ReadAllFiles(StringVector &inputFileVector, string const &inputF
 
 	if (isDiff)
 	{
+            //Modification: 2017.02
+            if (!doFuncDiff)
+            {
+
 		if (useListA)
 		{
 #ifdef	QTGUI
@@ -2071,6 +2080,7 @@ int MainObject::ReadAllFiles(StringVector &inputFileVector, string const &inputF
 			cout << "Get baseline B information about source files.....";
 #endif
 		}
+            }
 	}
 	else
 	{
@@ -2090,18 +2100,19 @@ int MainObject::ReadAllFiles(StringVector &inputFileVector, string const &inputF
 	// Set up to either call thread helper or just run single threaded.
 	SourceFileList* mySrcFileList = (useListA) ? &SourceFileA : &SourceFileB;
 	std::vector<std::string>::iterator itStart = inputFileVector.begin();
-	unsigned long	count_done = 0L;
 
 #ifndef	QTGUI
 	cout << "..........";  // set up a small area / 10 blanks / to update on top of
 #endif
 
 #ifdef	ENABLE_THREADS
+	unsigned long	count_done = 0L; //Modification: 2018.01 moved count_done inside ENABLE_THREADS to remove warnings
 	if (workThreadsCount >= MIN_UCC_THREAD_COUNT)
 	{
 		unsigned long	num_in_list = (unsigned long)distance(itStart, inputFileVector.end());
 
-		error_count = ReadFilesThreads(inputFileVector.size(), doNotRead, noWeb,
+                //Modification: 2018.01 error_count not used
+		ReadFilesThreads(inputFileVector.size(), doNotRead, noWeb,
 			userIF, print_cmplx,
 			print_csv, inputFileVector,
 			useListA, clearCaseFile, outDir,
@@ -2165,7 +2176,8 @@ int MainObject::ReadAllFiles(StringVector &inputFileVector, string const &inputF
 		ErrMsgStructVector			err_msgs;	// Not used but needed for arg in call
 		UncountedFileStructVector	unc_files;	// Not used but needed for arg in call
 
-		error_count = ReadFilesInList(MAIN_THREAD_INDEX, doNotRead, noWeb,
+                //Modification: 2018.01 error_count not used
+		ReadFilesInList(MAIN_THREAD_INDEX, doNotRead, noWeb,
 			userIF,
 			CounterForEachLanguage,
 			print_cmplx,
@@ -2184,7 +2196,7 @@ int MainObject::ReadAllFiles(StringVector &inputFileVector, string const &inputF
 		// Here the error_count is for info purposes.  
 		// Single thread mode mostly does the Error reporting as expected.
 
-		count_done = mySrcFileList->size();
+		//count_done = mySrcFileList->size(); //Modification: 2018.01 removed as it's not used anymore to avoid warnings
 	}
 
 #ifdef QTGUI
@@ -2193,7 +2205,11 @@ int MainObject::ReadAllFiles(StringVector &inputFileVector, string const &inputF
 #else
 	// Just erase the last 10 characters
 	cout << "\b\b\b\b\b\b\b\b\b\b          \b\b\b\b\b\b\b\b\b\b";
-	cout << "\b\b\b\bDONE\n";		// And to adjust for not using calls to update progress
+        //Modification 2017.02
+        if (!doFuncDiff)
+        {
+            cout << "\b\b\b\bDONE\n";               // And to adjust for not using calls to update progress
+        }
 #endif
 
 	if (workThreadsCount >= MIN_UCC_THREAD_COUNT)
@@ -2424,7 +2440,7 @@ void MainObject::FindDuplicateFiles(SourceFileList * pFileList, StringVector * d
 #define		UI_REFRESH_INTERVAL		3		// In seconds, do NOT make less than 2
 #define		UI_DUP_COUNT_INTERVAL	20		// Show counts every 20 or every Refresh interval seconds
 
-	SourceFileList::iterator fileList_end = pFileList->end();
+//	SourceFileList::iterator fileList_end = pFileList->end();
 	SourceFileList::iterator i;
 
 	// Get a list of per Language starting positions for Duplicate checking, WEB has Embedded "files"
@@ -2491,7 +2507,7 @@ void MainObject::FindDuplicateFiles(SourceFileList * pFileList, StringVector * d
 	}
 
     //Warning fix 11.25.16. DO NOT USE THIS VARIABLES AFTER THIS
-    //(void)use_threads;
+    (void)use_threads;
 #endif
 
 
@@ -2601,7 +2617,11 @@ void MainObject::FindDuplicateFiles(SourceFileList * pFileList, StringVector * d
 #ifndef	QTGUI
 	cout << "\b\b\b\b\b\b\b\b\b\b          \b\b\b\b\b\b\b\b\b\b" << flush;
 #endif
-	userIF->updateProgress("\b\b\b\bDONE");
+        //Modification: 2017.02
+        if (!doFuncDiff)
+        {
+	        userIF->updateProgress("\b\b\b\bDONE");
+        }
 
 
 	if (workThreadsCount >= MIN_UCC_THREAD_COUNT)

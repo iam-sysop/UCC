@@ -465,7 +465,7 @@ void CBatchCounter::LSLOC(results* result, string line, size_t lineNumber, strin
 			strLSLOC = strLSLOCBak = "";
 			phys_exec_lines++;
 			temp_lines = 0;
-			delete line;
+			delete[] line;
 			return;
 		}
 		
@@ -484,7 +484,7 @@ void CBatchCounter::LSLOC(results* result, string line, size_t lineNumber, strin
 			strLSLOC = strLSLOCBak = "";
 			phys_exec_lines++;
 			temp_lines = 0;
-			delete line;
+			delete[] line;
 			return;
 		}
 
@@ -622,7 +622,7 @@ void CBatchCounter::LSLOC(results* result, string line, size_t lineNumber, strin
 			strLSLOC = strLSLOCBak = "";
 		}
 
-		delete line;
+		delete[] line;
 		line = NULL;
 	}
 }

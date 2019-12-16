@@ -14,6 +14,8 @@ using namespace std;
 #define INVALID_POSITION ((unsigned int)-1)
 #define TO_END_OF_STRING INVALID_POSITION
 
+//Modified: 2017.02 Max path size of a directory
+const int MAX_PATH_SIZE = 100000;
 
 /* Modification: 2015.09.27
 *   by Randy Maxwell
@@ -139,7 +141,11 @@ public:
                              unsigned long & numFiles, string & commonPathPrefix );
     static bool GetFileList(StringVector &fileList, const string &path, bool symLinks);
     static bool MatchFilename(const string &filename, const string &matchStr);
+    //Modification: 2017.02
+    static int GetPath(string &path);
     static int MkPath(const string &path);
+    // Modification: 2017.02
+    static int RmPath(const string &path);
     static string ConvertClearCaseFile( const string &fileName, string & clearCaseTrailer );
     static size_t TruncateLine(size_t length, size_t totalLength, size_t truncate, bool &trunc_flag);
     static string ClearRedundantSpaces(const string &str);

@@ -1208,7 +1208,7 @@ if ( EXCEPTION_DID_NOT_HAPPEN != thread_exception_type )
 		pStatus->work_ThreadState = THREAD_HAS_EXITED;
 
     //warning fix 11.25.16. DO NOT USE THIS VARIABLE AFTER THIS.
-    //(void) have_done_work;
+    (void) have_done_work;
 	return;
 }
 
@@ -2311,7 +2311,7 @@ int DiffPairsInList( const unsigned int					threadIdx,
 		}
 
 		// this makes sure that if one of the files was unmatched it will just compare it against an empty set
-		pDiffManager->Compare(firstFile, secondFile, match_threshold);
+		//pDiffManager->Compare(firstFile, secondFile, match_threshold);
 
 		// if the file is a class of type WEB, keep a list
 		if (web_file_name.size() > 0)
@@ -2507,7 +2507,9 @@ int DupCheckLanguages( unsigned int					threadIdx,
 #endif
 
 	unsigned long	count_done        = 0L;
+#ifdef          ENABLE_THREADS   //Modification: 2018.01, removing warnings
 	unsigned long	prev_count_done   = 0L;
+#endif
 	long			seconds_from_last = 0L;
 	bool			update_needed = false;
 	time_t			last_time = 0;
@@ -2637,7 +2639,7 @@ int DupCheckLanguages( unsigned int					threadIdx,
 						return error_count;	// Don't do any more files.  Get out.
 					}
 				#endif
-					prev_count_done = count_done;
+					//prev_count_done = count_done; //Modification: 2018.01 ; Not Used
 				}
 			}
 		}
@@ -2747,7 +2749,7 @@ int DupCheckLanguages( unsigned int					threadIdx,
 						return error_count;	// Don't do any more files.  Get out.
 					}
 				#endif
-					prev_count_done = count_done;
+					//prev_count_done = count_done; //Modification: 2018.01 ; Not Used
 				}
 			}
 		}
@@ -2832,7 +2834,8 @@ bool FindDuplicateFor( CmpMngr					*	pDiffManager,
 	SourceFileElement *	i = pPtrFlags[ i_idx ].pSrcFile;
 	SourceFileElement *	j = NULL;
 	
-	bool	myCheckMatch = checkMatch;	// WARNING myCheckMatch gets assigned to below ? Possible logic ERROR ?
+//Modification: 2018.01 ; Not Used	
+//      bool	myCheckMatch = checkMatch;	// WARNING myCheckMatch gets assigned to below ? Possible logic ERROR ?
 
 	// Set up instances on local stack of values that do NOT change in the LOOP
 	// Migrate invariant expressions outside or simplify expressions within a loop.
@@ -3147,9 +3150,9 @@ bool FindDuplicateFor( CmpMngr					*	pDiffManager,
 			recDup = true;
 			if (checkMatch)
 			{
-				if ((*i).second.matched)
-					myCheckMatch = false;
-				else if ((*j).second.matched)
+				/*if ((*i).second.matched)
+					myCheckMatch = false; *///Modification: 2018.01 ; Not Used
+				if ((*j).second.matched)
 				{
 					// change previously set first duplicate (if necessary)
 					if (foundDup)
@@ -3162,7 +3165,7 @@ bool FindDuplicateFor( CmpMngr					*	pDiffManager,
 
 					// switch first duplicate for one with a match
 					recDup = false;
-					myCheckMatch = false;
+					//myCheckMatch = false; //Modification: 2018.01 ; Not Used
 					(*j).second.firstDuplicate = true;
 
 					// Update j flags
@@ -3443,7 +3446,7 @@ int ReadFilesInList( const unsigned int					threadIdx,
 	filemap		fmap;
 	results		r;
 
-	bool			OK_to_process = false;
+//	bool			OK_to_process = false; //Modification: 2018.01 ; Not Used
 //	string			oneline;
 
 	ClassType	fileclass;
@@ -3451,7 +3454,7 @@ int ReadFilesInList( const unsigned int					threadIdx,
 	string		fileName, clearCaseCroppedFile;
 
 // LOOP through the given file list
-	bool			readThisFile = ! noRead;
+	//bool			readThisFile = ! noRead; //Modification: 2018.01 ; Not Used
 	bool			readWebFiles = ! noWeb;
 	bool			skip_file_process = false;
 	bool			time_based_update = false;
@@ -3464,7 +3467,9 @@ int ReadFilesInList( const unsigned int					threadIdx,
 #define		UI_READ_DONE_AMOUNT		20
 #define		UI_REFRESH_INTERVAL		3		// Do NOT make less than 2
 	unsigned long	count_done = 0;
+#ifdef          ENABLE_THREADS   //Modification: 2018.01, removing warnings
 	unsigned long	prev_count_done = 0;
+#endif
 	unsigned long	num_in_loop = (unsigned long)distance( itStart, itEnd );
 
 	// Percent approach: Only need to update when percent changes so will do twice as often
@@ -3490,8 +3495,8 @@ int ReadFilesInList( const unsigned int					threadIdx,
 		UI_count_down--;
 		skip_file_process = false;
 
-		OK_to_process = false;
-		readThisFile = ! noRead;
+		//OK_to_process = false; //Modification: 2018.01 ; Not Used
+		//readThisFile = ! noRead; //Modification: 2018.01 ; Not Used
 		fileName = *(itVectorData);
 		fileName = CUtil::TrimString( fileName );
 		r.file_name = fileName;
@@ -3588,7 +3593,7 @@ int ReadFilesInList( const unsigned int					threadIdx,
 				}
 			#endif
 				UI_count_down = inc_amount;
-				prev_count_done = count_done;
+				//prev_count_done = count_done; //Modification: 2018.01. Not Used.
 				last_time = current_time;
 			}
 		}
@@ -3610,7 +3615,7 @@ int ReadFilesInList( const unsigned int					threadIdx,
 				cout << flush;			// Needed otherwise won't display for Release build !
 			#endif
 				UI_count_down = inc_amount;
-				prev_count_done = count_done;
+				//prev_count_done = count_done; //Modification: 2018.01 ; Not Used
 				last_time = current_time;
 			}
 			// processing Canceled ?
@@ -4486,8 +4491,8 @@ void CombineThreadResults()
 			}
 		}
 	//Warning fix 11.25.16. DO NOT USE THESE VARIABLES AFTER THIS.
-	//(void)itDestStart;
-	//(void)itDestEnd;
+	(void)itDestStart;
+	(void)itDestEnd;
 	}
 
 	// Send back Errors, Uncounted files, Messages

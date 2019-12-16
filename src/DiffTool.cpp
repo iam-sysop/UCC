@@ -9,6 +9,7 @@
 #include "DiffTool.h"
 #include "CUtil.h"
 #include "UCCFilesOut.h"     // Modification: 2015.12
+#include "FunctionParser.h"  //Modification: 2017.2
 
 using namespace std;
 
@@ -78,6 +79,10 @@ DiffTool::DiffTool()
 {
 	// this is the summary count information
 	isDiff = true;
+
+        //Modification 2017.2
+        doFuncDiff = false;
+
 	// Modification: 2007.07
 	total_addedLines = total_deletedLines = total_modifiedLines = total_unmodifiedLines = 0;
 	dup_addedLines = dup_deletedLines = dup_modifiedLines = dup_unmodifiedLines = 0;
@@ -429,6 +434,243 @@ Output to files especially should be done single threaded from Main thread.
 
 /*
 * 1. Function Description: 
+*    Performs function level differencing
+*
+* 2. Parameters:
+*    argc： number of arguments
+*    argv： argument list
+*
+* 3. Creation Time and Owner:
+*        Version 2017.2
+*/
+int DiffTool::funcDiffProcess(int argc, char *argv[])
+{
+    doFuncDiff = true;
+
+    if (userIF == NULL)
+        userIF = new UserIF();
+
+    BaselineFileName1 = BASELINE_INF1;
+    BaselineFileName2 = BASELINE_INF2;
+
+    if (!ParseCommandLine(argc, argv))
+        ShowUsage();
+
+    SetCounterOptions(CounterForEachLanguage);
+#ifdef QTGUI
+    if (outDir != "")
+        {
+                BaselineFileName1 = outDir + BASELINE_INF1;
+                BaselineFileName2 = outDir + BASELINE_INF2;
+        }
+#endif
+
+    if (HasUserCancelled())
+        return 0;
+
+    string      start_threads_result_msg;
+    StartThreads(start_threads_result_msg);
+    if (start_threads_result_msg.size())
+        userIF->updateProgress(start_threads_result_msg, false);
+
+    if (HasUserCancelled())
+        return 0;
+
+    if (!ReadAllDiffFiles())
+        return 0;
+
+    if (HasUserCancelled())
+        return 0;
+
+    MatchBaseLines(commonPathPrefixBoth);
+        userIF->updateProgress("Performing function level differencing........", false);
+
+    //Modified: 2017.02 
+    //If it is commond line with -dir option, create temp directory in dirnameA and dirnameB
+    //Else, create temp directory in current work directory
+    string tempDirA;
+        string tempDirB;
+
+    if(use_CommandLine) {
+        tempDirA = dirnameA;
+        tempDirB = dirnameB;
+        }
+        else {
+                if(CUtil::GetPath(tempDirA)==0)
+                {
+                        string err = "Unable to get current work directory";
+            userIF->SetErrorFile("");
+            userIF->AddError(err);
+            return 0;
+                }
+                if(CUtil::GetPath(tempDirB)==0)
+                {
+                        string err = "Unable to get current work directory";
+            userIF->SetErrorFile("");
+            userIF->AddError(err);
+            return 0;
+                }
+        }
+
+    MatchingType tempMatchedFileList(matchedFilesList);
+    string fileA, fileB;
+    string tempPathA,tempPathB;
+    list<pair<pair<string, string> , ClassType> > listOfPairs;
+
+    printFuncDiffResultsHeader();
+
+    for (MatchingType::iterator myIt = tempMatchedFileList.begin(); myIt != tempMatchedFileList.end(); myIt++)
+    {
+        if ((*myIt).second.first == NULL)
+        {
+            fileA = "NA";
+        }
+        else
+        {
+            if ((*myIt).second.first->second.file_name_isEmbedded)
+                continue;
+
+            fileA = (*myIt).second.first->second.file_name;
+        }
+
+        if ((*myIt).second.second == NULL)
+        {
+            fileB = "NA";
+        }
+        else
+        {
+            if ((*myIt).second.second->second.file_name_isEmbedded)
+                continue;
+
+            fileB = (*myIt).second.second->second.file_name;
+        }
+
+        if (fileA.compare("NA")!=0)
+        {
+                listOfPairs.push_back(make_pair(make_pair(fileA, fileB), (*myIt).second.first->second.class_type));
+        }
+        else if (fileB.compare("NA")!=0)
+        {
+                listOfPairs.push_back(make_pair(make_pair(fileA, fileB), (*myIt).second.second->second.class_type));
+        }
+    }
+
+    for(list<pair<pair<string, string> , ClassType> >::iterator myIt = listOfPairs.begin(); myIt != listOfPairs.end(); myIt++)
+    {
+        fileA = (*myIt).first.first;
+        fileB = (*myIt).first.second;
+
+        tempPathA = tempDirA+"/tempA";
+        tempPathB = tempDirB+"/tempB";
+
+        if (CUtil::MkPath(tempPathA) == 0)
+        {
+            string err = "Unable to create temporary output directory (";
+            err += tempPathA;
+            err += ")";
+            userIF->SetErrorFile("");
+            userIF->AddError(err);
+            return 0;
+        }
+        if (CUtil::MkPath(tempPathB) == 0)
+        {
+            string err = "Unable to create temporary output directory (";
+            err += tempPathB;
+            err += ")";
+            userIF->SetErrorFile("");
+            userIF->AddError(err);
+            return 0;
+        }
+
+        ClassType classTypeOfFile = (*myIt).second;
+        FunctionParser functionParser;
+
+        if (fileA.compare("NA")!=0)
+        {
+                functionParser.callParser(fileA, tempPathA, classTypeOfFile);
+        }
+        if (fileB.compare("NA")!=0)
+        {
+                classTypeOfFile = (*myIt).second;
+                functionParser.callParser(fileB, tempPathB, classTypeOfFile);
+        }
+
+        dirnameA = tempPathA;
+        dirnameB = tempPathB;
+
+        total_addedLines = total_deletedLines = total_modifiedLines = total_unmodifiedLines = 0;
+
+        matchedFilesList.resize(0);
+        SourceFileA.resize(0);
+        SourceFileB.resize(0);
+        ReadAllDiffFiles();
+        MatchBaseLines(commonPathPrefixBoth);
+        ProcessPairs();
+        if (print_ascii || print_legacy)
+        {
+            outfile_diff_results << "File Name A: ";
+            outfile_diff_results << fileA << "  ";
+            outfile_diff_results.width(3);
+            outfile_diff_results << "| ";
+            outfile_diff_results << "File Name B: ";
+            outfile_diff_results << fileB;
+            outfile_diff_results.width(3);
+            outfile_diff_results << "| " << endl;
+
+        }
+        if(print_csv)
+        {
+            outfile_diff_csv << endl;
+            outfile_diff_csv << "File Name A:" << "," << fileA << ",";
+            outfile_diff_csv << "File Name B:" << "," << fileB << endl;
+        }
+
+        PrintFuncDiffResults();
+
+        if (CUtil::RmPath(tempPathA)==0)
+        {
+                string err = "Unable to delete directory (";
+                err += tempPathA;
+                err += ")";
+                userIF->SetErrorFile("");
+                userIF->AddError(err);
+                return 0;
+        }
+        if (CUtil::RmPath(tempPathB)==0)
+        {
+                string err = "Unable to delete directory (";
+                err += tempPathB;
+                err += ")";
+                userIF->SetErrorFile("");
+                userIF->AddError(err);
+                return 0;
+        }
+
+        dirnameA = tempDirA;
+        dirnameB = tempDirB;
+
+        fileA = fileB = "";
+    }
+
+    //Close function level differencing output file
+    if (print_ascii || print_legacy)
+        outfile_diff_results.close();
+
+    if (print_csv)
+        outfile_diff_csv.close();
+
+    //close dump file stream, otherwise infile_file_dump will be buggy.
+    outfile_file_dump.close();
+
+#ifndef QTGUI
+    userIF->updateProgress("DONE");
+#endif
+
+    return 1;
+}
+
+/*
+* 1. Function Description: 
 *    Diff needs some file details for both baselines.
 *      Reading physical lines into RAM buffers (and Analysis/Counting) happens later.
 *    Return method status of 1 if OK else 0
@@ -449,6 +691,7 @@ int DiffTool::ReadAllDiffFiles()
 	int		retVal = 1;						// Modified: 2015.12
 
 	// Make a list of input source files
+        if(!doFuncDiff) //Modified: 2017.2
 	userIF->updateProgress( "Building list of source files...\n", false );    // Modified: 2015.12
 
 	// flag to indicate if the files are to be read from fileList<A|B>.txt
@@ -1122,6 +1365,7 @@ void DiffTool::MatchBaseLines( const string commonPathBetweenBaselines, const bo
 #else
 	// Just erase the last 10 characters
 	cout << "\b\b\b\b\b\b\b\b\b\b          \b\b\b\b\b\b\b\b\b\b";
+        if(!doFuncDiff) //Modification: 2017.2
 	cout << "\b\b\b\bDONE\n";		// And to adjust for not using calls to update progress
 #endif
 }
@@ -1269,7 +1513,6 @@ unsigned int DiffTool::CompareFilePaths( const string &s1, const string &s2 )
 */
 void DiffTool::ProcessPairs()
 {
-	int		error_count = 0;
 	string	errList;            // Modification: 2015.12
 
     // output differences between baselines in diff_dump.txt if visualdiff switch is set
@@ -1281,7 +1524,6 @@ void DiffTool::ProcessPairs()
     }
 
 	// Let the User know something is going on...			Modified: 2015.12
-	unsigned long	count_done = 0;
 	string			cntStr;
 
 #ifndef	QTGUI
@@ -1305,12 +1547,14 @@ void DiffTool::ProcessPairs()
 	// Set up to either call thread helper or just run single threaded.
 
 #ifdef	ENABLE_THREADS
+        //Modification: 2018.01 : Moved count_done inside ENABLE_THREADS to avoid compilation warnings
+	unsigned long	count_done = 0;
 	if ( workThreadsCount >= MIN_UCC_THREAD_COUNT )
 	{
 	#ifdef	QTGUI
 		unsigned int	num_in_list = matchedFilesList.size();
 	#endif
-		error_count = DiffPairsThreads( this, userIF, print_cmplx, print_csv, 
+		DiffPairsThreads( this, userIF, print_cmplx, print_csv, 
 										clearCaseFile, outDir, 
 										g_discard_PHY_lines_after_process,
 										g_discard_lines_after_process,
@@ -1362,7 +1606,7 @@ void DiffTool::ProcessPairs()
 	{
 		// Not using extra worker threads
 		// Still uses optimizations
-		error_count = DiffPairsInList( MAIN_THREAD_INDEX,
+		DiffPairsInList( MAIN_THREAD_INDEX,
 										match_threshold,
 										userIF,
 										printDup,
@@ -1392,7 +1636,7 @@ void DiffTool::ProcessPairs()
 
 		// Here the error_count is for info purposes.  
 		// Single thread mode mostly does the Error reporting as expected.
-		count_done = matchedFilesList.size();
+		//count_done = matchedFilesList.size(); //Modification: 2018.01 count_done not used anymore
 	}
 
 #ifdef	QTGUI
@@ -1401,6 +1645,7 @@ void DiffTool::ProcessPairs()
 #else
 	// Just erase the last 10 characters
 	cout << "\b\b\b\b\b\b\b\b\b\b          \b\b\b\b\b\b\b\b\b\b";
+        if(!doFuncDiff) //Modification: 2017.2
 	cout << "\b\b\b\bDONE\n";		// And to adjust for not using calls to update progress
 #endif
 
@@ -2121,3 +2366,333 @@ void DiffTool::PrintDiffResults()
         html_diff_stream.close();
     }
 }
+
+/*!
+* 1. Function Description:
+*    Prints the header for the function level differencing output.
+*
+* 2. Parameters:
+*
+* 3. Creation Time and Owner:
+*        Version 2017.2
+*/
+void DiffTool::printFuncDiffResultsHeader()
+{
+    // open the func diff results output file
+    //ASCII format
+    if (print_ascii || print_legacy)
+    {
+        string fName = outDir + FUNC_DIFF_OUTFILE;
+        outfile_diff_results.open(fName.c_str(), ofstream::out);
+        //File open failed
+        if (!outfile_diff_results.is_open())
+        {
+            string err = "Error: Failed to open func diff results output file (";
+            err += FUNC_DIFF_OUTFILE;
+            err += ")";
+            userIF->AddError(err);
+            return;
+        }
+    }
+    //CSV format
+    if (print_csv)
+    {
+        string fName = outDir + FUNC_DIFF_OUTFILE_CSV;
+        outfile_diff_csv.open(fName.c_str(), ofstream::out);
+        //File open failed
+        if (!outfile_diff_csv.is_open())
+        {
+            string err = "Error: Failed to open func diff results output file (";
+            err += FUNC_DIFF_OUTFILE_CSV;
+            err += ")";
+            userIF->AddError(err);
+            return;
+        }
+    }
+
+    // print the func diff results header.
+    string myCats[] = {"New", "Deleted", "Modified", "Unmodified", "Function"};
+    int i, y, numCats = 5;
+
+    //ASCII format header
+    if (print_ascii || print_legacy)
+    {
+        PrintFileHeader(outfile_diff_results, "FUNCTION LEVEL DIFFERENCING RESULTS", cmdLine);
+        //Print the title of each column
+        for (i = 0; i < numCats; i++)
+        {
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << myCats[i];
+            outfile_diff_results.unsetf(ofstream::left);
+            if (i + 1 < numCats)
+            {
+                outfile_diff_results.width(3);
+                outfile_diff_results << " | ";
+            }
+        }
+        outfile_diff_results << endl;
+        for (i = 0; i < numCats - 1; i++)
+        {
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << "Lines";
+            outfile_diff_results.unsetf(ofstream::left);
+            outfile_diff_results.width(3);
+            outfile_diff_results << " | ";
+        }
+        outfile_diff_results.setf(ofstream::left);
+        outfile_diff_results.width(15);
+        outfile_diff_results << "Name";
+        outfile_diff_results.unsetf(ofstream::left);
+        outfile_diff_results << endl;
+        for (y = 0; y < 120; y++)
+            outfile_diff_results << BAR_S;
+        outfile_diff_results << endl;
+    }
+
+    // CVS format
+    if (print_csv)
+    {
+        PrintFileHeader(outfile_diff_csv, "FUNCTION LEVEL DIFFERENCING RESULTS", cmdLine);
+        outfile_diff_csv << "New Lines,Deleted Lines,Modified Lines,Unmodified Lines,Modification Type,Language,Baseline A Methods,Baseline B Methods" << endl;
+    }
+}
+
+/*!
+* 1. Function Description:
+*    Prints the results of the function level differencing.
+*
+* 2. Parameters:
+*
+* 3. Creation Time and Owner:
+*        Version 2017.2
+*/
+void DiffTool::PrintFuncDiffResults()
+{
+    string myCats[] = {"New", "Deleted", "Modified", "Unmodified", "Module"};
+    int y, numCats = 5;
+
+    // print pair results
+    resultStruct *myResults;
+    string filenameA, filenameB, lang, modType;
+    lang = DEF_LANG_NAME;
+    //Iterate the matchedFileList
+    for (MatchingType::iterator myI = matchedFilesList.begin(); myI != matchedFilesList.end(); myI++)
+    {
+        // select the filename, choose the baselineA unless this one was only in baselineB
+        filenameA = ((*myI).second.first != NULL) ? (*myI).second.first->second.file_name : "NA";
+        filenameB = ((*myI).second.second != NULL) ? (*myI).second.second->second.file_name : "NA";
+
+        if (((*myI).first.addedLines == 0 && (*myI).first.deletedLines == 0 &&
+             (*myI).first.modifiedLines == 0 && (*myI).first.unmodifiedLines == 0) ||
+            filenameA.find(EMBEDDED_FILE_PREFIX) != string::npos ||
+            filenameB.find(EMBEDDED_FILE_PREFIX) != string::npos)
+        {
+            // do not print out if the file is empty or file not supported
+            // only print file if it is the actual file (not having *.* in the filename)
+            continue;
+        }
+        else
+        {
+            if ((*myI).second.first != NULL)
+                lang = GetLanguageName( CounterForEachLanguage, (*myI).second.first->second.class_type, (*myI).second.first->second.file_name );      // Modification: 2015.12
+            else
+                lang = GetLanguageName( CounterForEachLanguage, (*myI).second.second->second.class_type, (*myI).second.second->second.file_name );    // Modification: 2015.12
+        }
+
+        if (filenameA.compare("NA") != 0)
+        {
+                size_t last = filenameA.find_last_of('/');
+                if ( last != string::npos)
+                {
+                        filenameA=filenameA.substr(last+1,filenameA.length()-last-1);
+                }
+                last = filenameA.find_last_of('\\');
+                if ( last != string::npos)
+                {
+                        filenameA=filenameA.substr(last+1,filenameA.length()-last-1);
+                }
+                last = filenameA.find_last_of('.');
+                if ( last != string::npos)
+                {
+                        filenameA=filenameA.substr(0,last);
+                }
+        }
+        if (filenameB.compare("NA") != 0)
+        {
+                size_t last = filenameB.find_last_of('/');
+                if ( last != string::npos)
+                {
+                        filenameB=filenameB.substr(last+1,filenameB.length()-last-1);
+                }
+                last = filenameB.find_last_of('\\');
+                if ( last != string::npos)
+                {
+                        filenameB=filenameB.substr(last+1,filenameB.length()-last-1);
+                }
+                last = filenameB.find_last_of('.');
+                if ( last != string::npos)
+                {
+                        filenameB=filenameB.substr(0,last);
+                }
+        }
+    
+                // print pair results
+        myResults = &((*myI).first);
+        if (print_ascii || print_legacy)
+        {
+                outfile_diff_results << endl;
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << myResults->addedLines;
+
+            outfile_diff_results.unsetf(ofstream::left);
+            outfile_diff_results.width(3);
+            outfile_diff_results << "| ";
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << myResults->deletedLines;    // modified from addedLines
+
+            outfile_diff_results.unsetf(ofstream::left);
+            outfile_diff_results.width(3);
+            outfile_diff_results << "| ";
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << myResults->modifiedLines;
+
+            outfile_diff_results.unsetf(ofstream::left);
+            outfile_diff_results.width(3);
+            outfile_diff_results << "| ";
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << myResults->unmodifiedLines;
+
+            outfile_diff_results.unsetf(ofstream::left);
+            outfile_diff_results.width(3);
+            outfile_diff_results << "| ";
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            if (filenameB.compare("NA") != 0)
+                outfile_diff_results << filenameB;
+            else
+                outfile_diff_results << filenameA;
+
+            outfile_diff_results.unsetf(ofstream::left);
+            outfile_diff_results << endl;
+        }
+
+        if (print_csv)
+        {
+            outfile_diff_csv << myResults->addedLines;
+            outfile_diff_csv << "," << myResults->deletedLines;
+            outfile_diff_csv << "," << myResults->modifiedLines;
+            outfile_diff_csv << "," << myResults->unmodifiedLines;
+
+            if (myResults->deletedLines == 0 && myResults->unmodifiedLines == 0 && myResults->modifiedLines == 0)
+                modType = "Add";
+            else if (myResults->addedLines == 0 && myResults->unmodifiedLines == 0 && myResults->modifiedLines == 0)
+                modType = "Del";
+            else if (myResults->addedLines == 0 && myResults->deletedLines == 0 && myResults->modifiedLines == 0)
+                modType = "Unmod";
+            else
+                modType = "Mod";
+
+            outfile_diff_csv << "," << modType;
+            outfile_diff_csv << ",\"" << lang << "\"";
+            outfile_diff_csv << ",\"" + filenameA + "\",\"" + filenameB + "\"";
+            outfile_diff_csv << endl;
+        }
+    }
+
+    // print the diff results summary
+    int ti;
+    numCats--;
+    // ASCII format
+    if (print_ascii || print_legacy)
+    {
+        outfile_diff_results << endl;
+        for (ti = 0; ti < numCats; ti++)
+        {
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << "Total";
+            outfile_diff_results.unsetf(ofstream::left);
+            if (ti + 1 < numCats)
+            {
+                outfile_diff_results.width(3);
+                outfile_diff_results << "| ";
+            }
+        }
+        outfile_diff_results << endl;
+        for (ti = 0; ti < numCats; ti++)
+        {
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << myCats[ti];
+            outfile_diff_results.unsetf(ofstream::left);
+            if (ti + 1 < numCats)
+            {
+                outfile_diff_results.width(3);
+                outfile_diff_results << "| ";
+            }
+        }
+        outfile_diff_results << endl;
+        for (ti = 0; ti < numCats; ti++)
+        {
+            outfile_diff_results.setf(ofstream::left);
+            outfile_diff_results.width(15);
+            outfile_diff_results << "Lines";
+            outfile_diff_results.unsetf(ofstream::left);
+            if (ti + 1 < numCats)
+            {
+                outfile_diff_results.width(3);
+                outfile_diff_results << "| ";
+            }
+        }
+        outfile_diff_results << endl; 
+        for (y = 0; y < 73; y++)
+            outfile_diff_results << BAR_S;
+        outfile_diff_results << endl;
+
+        outfile_diff_results.setf(ofstream::left);
+        outfile_diff_results.width(15);
+        outfile_diff_results << total_addedLines;
+
+        outfile_diff_results.unsetf(ofstream::left);
+        outfile_diff_results.width(3);
+        outfile_diff_results << "| ";
+        outfile_diff_results.setf(ofstream::left);
+        outfile_diff_results.width(15);
+        outfile_diff_results << total_deletedLines;
+
+        outfile_diff_results.unsetf(ofstream::left);
+        outfile_diff_results.width(3);
+        outfile_diff_results << "| ";
+        outfile_diff_results.setf(ofstream::left);
+        outfile_diff_results.width(15);
+        outfile_diff_results << total_modifiedLines;
+
+        outfile_diff_results.unsetf(ofstream::left);
+        outfile_diff_results.width(3);
+        outfile_diff_results << "| ";
+        outfile_diff_results.setf(ofstream::left);
+        outfile_diff_results.width(15);
+        outfile_diff_results << total_unmodifiedLines;
+
+        outfile_diff_results << endl << endl << endl;
+    }
+    //CSV format
+    if (print_csv)
+    {
+        outfile_diff_csv << endl << "Total New Lines,Total Deleted Lines,Total Modified Lines,Total Unmodified Lines" << endl;
+        outfile_diff_csv << total_addedLines;
+        outfile_diff_csv << "," << total_deletedLines;
+        outfile_diff_csv << "," << total_modifiedLines;
+        outfile_diff_csv << "," << total_unmodifiedLines << endl << endl;
+    }
+}
+

@@ -73,7 +73,7 @@ HEADERS += \
 	../src/CVHDLCounter.h \
 	../src/CWebCounter.h \
 	../src/CXMidasCounter.h \
-	../src/CXMLCounter.h \
+	../src/CXmlCounter.h \
 	../src/DiffTool.h \
 	../src/MainObject.h \
 	../src/UserIF.h \
@@ -90,6 +90,8 @@ HEADERS += \
 	../src/CCobolCounter.h \
     ../src/UCCAfterLibraryIncludes.h \
     ../src/UCCBeforeLibraryIncludes.h \
+	# Modification: 2017.02
+	../src/FunctionParser.h \
     UCCWorker.h
 
 SOURCES += \
@@ -136,7 +138,7 @@ SOURCES += \
 	../src/CVHDLCounter.cpp \
 	../src/CWebCounter.cpp \
 	../src/CXMidasCounter.cpp \
-	../src/CXMLCounter.cpp \
+	../src/CXmlCounter.cpp \
 	../src/DiffTool.cpp \
 	../src/MainObject.cpp \
 	../src/UserIF.cpp \
@@ -151,6 +153,8 @@ SOURCES += \
 	../src/CScalaCounter.cpp \
 	../src/CCobolCounter.cpp \
 	../src/main.cpp \
+	# Modification: 2017.02
+	../src/FunctionParser.cpp \
     Qt_main.cpp \
     UCCWorker.cpp
 

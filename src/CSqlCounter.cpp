@@ -676,7 +676,8 @@ void CSqlCounter::LSLOC(results* result, string line, size_t lineNumber, string 
     for (i=0;i<line.length();i++) {
         cs[i] = line[i];
     }
-    int len = strlen(cs);
+    //Modification: 2018.01, changed data type to size_t
+    size_t len = strlen(cs);
     std::stringstream ss;
     std::map<size_t, std::string> cmplx_assign_positions;
     for(std::vector<std::string>::iterator it = cmplx_assign_list.begin(); it != cmplx_assign_list.end(); it ++) {

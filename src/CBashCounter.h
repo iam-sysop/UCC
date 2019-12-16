@@ -26,6 +26,8 @@ protected:
 	virtual int PreCountProcess(filemap* fmap);
 	virtual int LanguageSpecificProcess(filemap* fmap, results* result, filemap* fmapBak = NULL);
     //Added by Rujun Ma for BashCounter fix. 11.27.16
+	//changes maade by Nikhila Banukumar
+	using CCodeCounter::ReplaceQuote;
     virtual int ReplaceQuote(string &strline, size_t &idx_start, bool &contd, string &CurrentQuoteEnd);	
 	virtual int CountCommentsSLOC(filemap* fmap, results* result, filemap* fmapBak = NULL);		
 	virtual int CountDirectiveSLOC(filemap* fmap, results* result, filemap* fmapBak = NULL);

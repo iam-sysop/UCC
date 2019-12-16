@@ -69,7 +69,7 @@
 *   Fixed cygwin compilation error w/ exception handling */
 
 #define		MAX_CALL_FRAMES		128
-
+#define UNUSED(x) (void)(x) //Modification: 2018.05
 
 
 // Utilities to support checking the Heap.  Implemented for Windows
@@ -289,6 +289,13 @@ void abortHandler( int signum, siginfo_t* si, void * unused )
 	// associate each signal with a signal name string.
 
 	const char * name = NULL;
+	//Modification: 2018.01 : Unused variable warning in GUI
+#if defined(WIN32) || defined(CYGWIN)
+    //do nothing
+#else
+    UNUSED(unused);
+	UNUSED(si);
+#endif
 
 	switch ( signum )
 
@@ -690,6 +697,8 @@ void printStackTrace( FILE *out, unsigned int max_frames )
 {
 
 	fprintf ( out, "stack trace:\n" );
+	//Modification: 2018.05: Unused argument warning in GUI
+    UNUSED(max_frames);
 
 
 
@@ -1515,7 +1524,9 @@ void FormatStackDump( string & stackStr, const unsigned int context,
 
 {
 
-	bool	isLowMemory = false;
+        //Modification: 2018.01: isLowMemory Not used
+	//bool	isLowMemory = false;
+	UNUSED(exType); //Modification: 2018.05: Unused variable warning in GUI
 
     if (ex_what == " "){
         //DO NOTHING. Warning fix 11.28.16
@@ -1523,9 +1534,11 @@ void FormatStackDump( string & stackStr, const unsigned int context,
 
 	// Check for the REALLY Exciting Exceptions
 
-	if ( exType == EXCEPTION_BAD_ALLOC )
+        //Modification: 2018.01: isLowMemory Not used
+	/*if ( exType == EXCEPTION_BAD_ALLOC )
 
 		isLowMemory = true;
+        */
 
 
 
@@ -1667,7 +1680,7 @@ void FormatStackDump( string & stackStr, const unsigned int context,
 
 	int				errorRet;
 
-	bool			call_again = true;
+	//bool			call_again = true; //Modification: 2018.01, call_again not used
 
 	bool			validate = true;
 
@@ -1681,9 +1694,11 @@ void FormatStackDump( string & stackStr, const unsigned int context,
 
 	HeapInUse( errorRet, heap_count, start_block_count, start_total_sizes, validate );
 
-	if ( ( errorRet == 1 ) || ( errorRet < 0 ) )
+        //Modification: 2018.01 call_again not used. 
+	/*if ( ( errorRet == 1 ) || ( errorRet < 0 ) )
 
 		call_again = false;
+        */ 
 
 
 
@@ -2874,6 +2889,7 @@ void	HeapInUse( int & errorRet, unsigned int & heap_count, unsigned long & block
 
 
 	errorRet = 1;		// NOT IMPLEMENTED
+	UNUSED(in_use); //Modification: 2018.05 : Unused variable warning in GUI
 
 
 

@@ -114,6 +114,24 @@ CJavaCounter::CJavaCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	log_func_list.push_back("Math.log10");
 	log_func_list.push_back("Math.log1p");
 
+        //Modification: 2018.01 Integration starts
+        three_char_operator_list.push_back(">>>");
+
+        for (StringVector::iterator it = cmplx_cyclomatic_list.begin(); it != cmplx_cyclomatic_list.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = directive.begin(); it != directive.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = data_name_list.begin(); it != data_name_list.end(); it++)
+            keyword_operators.insert(*it);
+
+        for (StringVector::iterator it = exec_name_list.begin(); it != exec_name_list.end(); it++)
+            keyword_operators.insert(*it);
+
+
+        //Modification: 2018.01 Integration ends
+
 /* Below Set in CCJavaCsScalaCounter base class
 	cmplx_cyclomatic_list.push_back("if");
 	cmplx_cyclomatic_list.push_back("case");
@@ -142,3 +160,25 @@ CJavaJspCounter::CJavaJspCounter()
 	file_extension.clear();
 	file_extension.push_back(".*java");
 }
+
+//Modification: 2018.01 Integration starts
+/*!
+* Returns the current line. Since Java does not support multiline strings,
+* a source line will never be part of a multiline string (unlike in C++).
+*
+* \param curr_line_idx the index of the line in fmap from which to begin
+* \param line the concatenation of all source lines beginning from curr_line_idx until there is no multistring
+* \param fmap the source code for the file
+* \param nonfunction_operator_counts the map for counting the number of times a nonfunction operator (e.g. symbolic operators such as '+' and '[')
+*
+* \return the index into fmap at which the first physical line, at or after curr_line_idx, does not continue to the next source line as a multiline string
+*/
+int CJavaCounter::GetLineUntilEndOfMultistringIfAny(int curr_line_idx, string &line, filemap &fmap, map<string, unsigned int> &nonfunction_operator_counts) {
+	//Modification: 2018.05: Unused Variables warnings
+    (void)line;
+    (void)fmap;
+    (void)nonfunction_operator_counts;
+    return curr_line_idx;
+}
+
+//Modification: 2018.01 Integration ends

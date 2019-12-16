@@ -247,6 +247,7 @@ protected:
 
 	bool clearCaseFile;								//!< Target files are extracted from the ClearCase CM
 	bool followSymLinks;							//!< Unix symbolic links are followed to their linked files/dirs
+        bool doFuncDiff;                                //!< Enables function level differencing. Modified: 2017.02
 
 	string	beginLangsExtens;						//!< Original list of Language names & related file extensions, 1 language per line
 

@@ -6,7 +6,9 @@
 */
 
 #include "UCCBeforeLibraryIncludes.h"
+#include <cmath> //Modification: 2018.01
 #include <iostream>
+#include <sstream> //Modification: 2018.01
 #include "UCCAfterLibraryIncludes.h"
 
 #include "CCJavaCsScalaCounter.h"
@@ -123,6 +125,62 @@ CCJavaCsScalaCounter::CCJavaCsScalaCounter( string lang )
 
 	cmplx_cyclomatic_case_list.push_back("case");
 	cmplx_cyclomatic_switch_list.push_back("switch");
+
+        //Modification: 2018.01 Integration Starts
+        three_char_operator_list.push_back("<<=");
+        three_char_operator_list.push_back(">>=");
+
+        two_char_operator_list.push_back("||");
+        two_char_operator_list.push_back("&&");
+        two_char_operator_list.push_back("==");
+        two_char_operator_list.push_back("!=");
+        two_char_operator_list.push_back("<=");
+        two_char_operator_list.push_back(">=");
+        two_char_operator_list.push_back("<<");
+        two_char_operator_list.push_back(">>");
+        two_char_operator_list.push_back("++");
+        two_char_operator_list.push_back("--");
+        two_char_operator_list.push_back("+=");
+        two_char_operator_list.push_back("-=");
+        two_char_operator_list.push_back("&=");
+        two_char_operator_list.push_back("|=");
+        two_char_operator_list.push_back("+=");
+        two_char_operator_list.push_back("-=");
+        two_char_operator_list.push_back("*=");
+        two_char_operator_list.push_back("/=");
+        two_char_operator_list.push_back("^=");
+        two_char_operator_list.push_back("%=");
+
+        one_char_operator_list.push_back("=");
+        one_char_operator_list.push_back("+");
+        one_char_operator_list.push_back("-");
+        one_char_operator_list.push_back("*");
+        one_char_operator_list.push_back("/");
+        one_char_operator_list.push_back("~");
+        one_char_operator_list.push_back("^");
+        one_char_operator_list.push_back("&");
+        one_char_operator_list.push_back("|");
+        one_char_operator_list.push_back(">");
+        one_char_operator_list.push_back("<");
+
+        one_char_operator_list.push_back("(");
+        one_char_operator_list.push_back(")");
+        one_char_operator_list.push_back("[");
+        one_char_operator_list.push_back("]");
+        one_char_operator_list.push_back("{");
+        one_char_operator_list.push_back("}");
+        one_char_operator_list.push_back("!");
+        one_char_operator_list.push_back("%");
+        one_char_operator_list.push_back(":");
+        one_char_operator_list.push_back("?");
+        one_char_operator_list.push_back(";");
+        one_char_operator_list.push_back(",");
+        one_char_operator_list.push_back(".");
+        one_char_operator_list.push_back("!");
+        one_char_operator_list.push_back("%");
+        one_char_operator_list.push_back("\\");
+
+        //Modification: 2018.01 Integration ends
 
 // TODO: Add more keywords/values for Object Orientation and Functional Programming metrics collection
 
@@ -818,3 +876,521 @@ int CCJavaCsScalaCounter::ParseFunctionName(const string &line, string &lastline
 	SAVE_TO_3( "Exit CCJavaCsScalaCounter::ParseFunctionName Not found" );
 	return 0;
 }
+
+//Modification: 2018.01 Integration starts
+
+/*!
+* Finds the first unescaped quote occurring in a line, after position start_pos.
+* Used to determine the index of the ending quote of a string.
+*
+* \param line a source line
+* \param start_pos the index into 'line' at which a quote character has been found, we start searching from start_pos + 1
+* \param quote the quote character to look for (for our use, it will be a single quote ' or a double quote ")
+* \param quote_escape the string that is used to escape the passed in quote (e.g. the string \" or \')
+*
+* \return the index into line at which the next (after start_pos) unescaped quote is found
+*/
+int CCJavaCsScalaCounter::FindIdxOfNextQuote(const string &line, int start_pos, const char &quote) {
+    size_t idx = line.find(quote, start_pos + 1); //Modification: 2018.01, changed data type
+    int num_backslash;
+    int curr_idx;
+
+    while (idx != string::npos) {
+        num_backslash = 0;
+
+        // Count consecutive backslashes before idx
+        curr_idx = idx - 1;
+        while (curr_idx >= start_pos + 1 && line[curr_idx] == '\\') {
+                curr_idx--;
+                num_backslash++;
+        }
+
+        // If even number of backslashes then the quote at idx is a quote for ending the string/char
+        // otherwise it's not and we have to continue looking
+        if (num_backslash % 2 == 0) {
+                break;
+        } else {
+                idx = line.find(quote, idx + 1);
+        }
+    }
+
+    return idx;
+}
+
+/*!
+* Removes all strings and chars in 'line' and stores the count of them if add_to_count is true
+*
+* \param line a source line. line will be modified
+* \param string_char_counts the map for storing the counts of strings and chars
+* \param add_to_count true to indicate that we should store the detected string and char counts into string_char_counts
+* \return 0 if no error and return 1 if 'line' begins a string a string or char but does not end it
+*/
+int CCJavaCsScalaCounter::RemoveStringsAndChars(string &line, map<string, unsigned int> &string_char_counts, const bool &add_to_count) {
+    // escape quotes
+    char double_quote = '"';
+    char single_quote = '\'';
+
+    //Modification: 2018.01, changed data types to size_t
+    size_t next_double_quote_idx = -1;
+    size_t next_single_quote_idx = -1;
+
+    size_t idx;
+
+    idx = line.find("'\"'");
+    // Count and remove double quotes within single quotes (i.e. '"')
+    while (idx != string::npos) {
+        line.replace(idx, 3, " ");
+        if (add_to_count)
+            string_char_counts["\""]++;
+        idx = line.find("'\"'", idx + 1);
+    }
+
+    idx = line.find("'\\\"'");
+    // Count and remove double quotes within single quotes (i.e. '\"')
+    while (idx != string::npos) {
+        line.replace(idx, 4, " ");
+        if (add_to_count)
+            string_char_counts["\\\""]++;
+        idx = line.find("'\\\"'", idx + 1);
+    }
+
+    idx = line.find(double_quote);
+
+    // Count and remove strings
+    while (idx != string::npos) {
+        // if next_double_quote is string::npos, error out
+        // assume fine for now
+        next_double_quote_idx = FindIdxOfNextQuote(line, idx, double_quote);
+        if (next_double_quote_idx == string::npos) {
+                return 1;
+        }
+
+        if (add_to_count)
+            string_char_counts[line.substr(idx, next_double_quote_idx - idx + 1)]++;
+        line.replace(idx, next_double_quote_idx - idx + 1, " ");
+        idx = line.find(double_quote, idx + 1);
+    }
+
+    idx = line.find(single_quote);
+
+    // Count and remove chars
+    while (idx != string::npos) {
+        next_single_quote_idx = FindIdxOfNextQuote(line, idx, single_quote);
+        if (next_single_quote_idx == string::npos) {
+                return 1;
+        }
+
+
+        if (add_to_count)
+            string_char_counts[line.substr(idx, next_single_quote_idx - idx + 1)]++;
+        line.replace(idx, next_single_quote_idx - idx + 1, " ");
+        idx = line.find(single_quote, idx + 1);
+    }
+
+    return 0;
+}
+
+/*!
+* Removes 'symbols' from 'line' except where '(' belongs
+* to a function call (e.g. the line "somecall()" would become "somecall( ").
+* For this function, a 'symbol' is considered to be those
+* in two_char_operator_list or one_char_operator_list.
+*
+* \param line a source line. line will be modified
+* \param string_char_counts the map for storing the counts of nonfunction operators
+* \param should_count true to indicate that we should store the detected string and char counts into nonfunction_operator_counts
+*/
+void CCJavaCsScalaCounter::RemoveSymbolsExceptOpenRoundBracketOfFunction(string &line, map<string, unsigned int> &nonfunction_operator_counts, const bool &should_count) {
+        size_t idx; //Modification: 2018.01 changed data type
+
+        for (size_t i = 0; i < three_char_operator_list.size(); i++) {
+                idx = line.find(three_char_operator_list[i]);
+
+                while (idx != string::npos) {
+                        if (should_count)
+                                nonfunction_operator_counts[three_char_operator_list[i]]++;
+
+                        line.replace(idx, 3, " ");
+                        idx = line.find(three_char_operator_list[i], idx + 1);
+                }
+        }
+
+    for (size_t i = 0; i < two_char_operator_list.size(); i++) {
+        idx = line.find(two_char_operator_list[i]);
+
+        // Keep finding the symbol two_char_operator_list[i]
+        // and replacing it with a space " " until no more are found
+        while (idx != string::npos) {
+            if (should_count)
+                nonfunction_operator_counts[two_char_operator_list[i]]++;
+
+            line.replace(idx, 2, " ");
+            idx = line.find(two_char_operator_list[i], idx + 1);
+        }
+    }
+
+    // Count and replace one character operators
+    for (size_t i = 0; i < one_char_operator_list.size(); i++) {
+        idx = line.find(one_char_operator_list[i]);
+
+        // Keep finding the symbol one_char_operator_list[i]
+        // and replacing it with a space " " until no more are found
+        while (idx != string::npos) {
+            if (one_char_operator_list[i] != "(" ||
+                (one_char_operator_list[i] == "(" && (idx == 0 || !IsAlphanumericOrUnderscore(line[idx - 1])))) {
+                                line.replace(idx, 1, " ");
+
+                            if (should_count)
+                        nonfunction_operator_counts[one_char_operator_list[i]]++;
+                        }
+
+            idx = line.find(one_char_operator_list[i], idx + 1);
+        }
+    }
+}
+
+/*!
+* Checks if a source line contains a function call or a function definition
+* and stores the name of this function, if any, in function_name
+*
+* \param line a source line
+* \param function_name stores the name of the first function called or defined in 'line', if any is found
+* \return true if 'line' has a function call or a function definition
+*/
+bool CCJavaCsScalaCounter::IsEitherFunctionDefinitionOrInvocation(string line, string &function_name) {
+    int idx;
+    line = CUtil::TrimString(line, 0);
+    map<string, unsigned int> unused_map;
+    RemoveStringsAndChars(line, unused_map, false);
+
+    // RemoveSymbolsExceptOpenRoundBracketOfFunction(modified_line, unused_map, false);
+    idx = line.find_first_of("(");
+    if (idx > 0 && IsAlphanumericOrUnderscore(line[idx - 1])) {
+        function_name = line.substr(0, idx);
+        return true;
+    }
+    return false;
+}
+
+/*!
+* Checks if a source line contains a function call function definition.
+* If it does contain a function definition, then the name of the function
+* is stored in function_name.
+* The implementation idea is to look for either a semicolon or an opening curly brace.
+*
+* \param line_idx the index into fmap from which we can extract the source line
+* \param fmap the filemap of the file
+* \param function_name stores the name of the first function called or defined in 'line', if any is found
+* \return true if 'line' has a function call or a function definition
+*/
+bool CCJavaCsScalaCounter::IsFunctionDefinition(int line_idx, filemap &fmap, string &function_name) {
+    unsigned int curr_line_idx = line_idx;
+    bool result = false;
+    string tline = CUtil::TrimString(fmap[line_idx].line, 1);
+    if (IsEitherFunctionDefinitionOrInvocation(tline, function_name)) {
+        // find first of ';' and '{'
+        size_t idx_of_semicolon = tline.find(";");
+        size_t idx_of_open_curly = tline.find("{");
+        while (curr_line_idx < fmap.size() - 1 &&
+                idx_of_semicolon == string::npos &&
+                idx_of_open_curly == string::npos) {
+            curr_line_idx++;
+            tline = CUtil::TrimString(fmap[curr_line_idx].line, 1);
+            idx_of_semicolon = tline.find(";");
+            idx_of_open_curly = tline.find("{");
+        }
+
+        // the line is a function definition if we found a '{'
+        // and either 1) we didn't find a semicolon, or
+        //            2) we found a semicolon but the first one we found was after the first '{' we found
+        if (idx_of_open_curly != string::npos)
+            if (idx_of_semicolon == string::npos || idx_of_open_curly < idx_of_semicolon)
+                result = true;
+    }
+
+    return result;
+}
+
+/*!
+* Adds the counts from add_from_counts to the counts in into_counts
+*
+* \param add_from_counts the map containing the source data of the counts
+* \param into_counts the map that is added to
+*/
+void CCJavaCsScalaCounter::SumUp(map<string, map<string, unsigned int> > &add_from_counts, map<string, unsigned int> &into_counts) {
+    for (map<string, map<string, unsigned int> >::iterator func_iter = add_from_counts.begin(); func_iter != add_from_counts.end(); func_iter++) {
+        map<string, unsigned int> op_counts = func_iter->second;
+        for (map<string, unsigned int>::iterator op_to_count = op_counts.begin(); op_to_count != op_counts.end(); op_to_count++)
+                into_counts[op_to_count->first] += op_to_count->second;
+    }
+}
+
+/*!
+* Determines if we have arrived at the end of a function (by using the count of open and ending curly braces)
+*
+* \param nonfunction_operator_counts the map containing the counts of the nonfunction operators seen
+* \return true if there is more than one '{' in nonfunction_operator_counts and the number of '{' equals the number of '}'
+*/
+bool CCJavaCsScalaCounter::IsLastLineOfFunction(map<string, unsigned int> &nonfunction_operator_counts) {
+    return nonfunction_operator_counts["{"] > 0 &&
+        nonfunction_operator_counts["{"] == nonfunction_operator_counts["}"];
+}
+
+/*!
+* Calculates Halstead's volume using the counts passed in
+*
+* \param string_char_counts the map containing the counts of strings and chars seen
+* \param word_counts the map containing the counts of items such as variable names (these are considered operators)
+* \param bool_counts the map containing the counts of bools (true and false)
+* \param number_counts the map containing the counts of numbers seen (e.g. integers, floats, etc)
+* \param function_counts the map containing the counts of functions (e.g. printf, user-defined functions invoked, etc)
+* \param nonfunction_operator_counts the map containing the counts of the nonfunction operators (e.g. counts of '+', '-', etc)
+* \return Halstead's volume or -1.0 if the total number of unique operators plus the total number of unique operands is zero
+*/
+double CalculateHalsteadsVolumeFromCounts(map<string, unsigned int> &string_char_counts,
+                                              map<string, unsigned int> &word_counts,
+                                              map<string, unsigned int> &bool_counts,
+                                              map<string, unsigned int> &number_counts,
+                                              map<string, unsigned int> &function_counts,
+                                              map<string, unsigned int> &nonfunction_operator_counts) {
+    unsigned int total_operators = 0;
+    unsigned int total_operands = 0;
+
+    unsigned int unique_operators = 0;
+    unsigned int unique_operands = 0;
+
+    vector<map<string, unsigned int> > counts_list;
+    counts_list.push_back(string_char_counts);
+    counts_list.push_back(word_counts);
+    counts_list.push_back(bool_counts);
+    counts_list.push_back(number_counts);
+    counts_list.push_back(function_counts);
+    counts_list.push_back(nonfunction_operator_counts);
+
+    for (vector<map<string, unsigned int> >::iterator ot = counts_list.begin(); ot != counts_list.end(); ot++) {
+            for (map<string, unsigned int>::iterator it = ot->begin(); it != ot->end(); it++) {
+                total_operands += it->second;
+                unique_operands++;
+            }
+        }
+
+        if (unique_operators + unique_operands == 0)
+                return -1.0;
+
+    return (double)(total_operators + total_operands) * log2((double)(unique_operators + unique_operands));
+}
+
+/*!
+* True if a char is a letter, number, or underscore
+* This is used because variable names are a combination of letters, numbers, and underscores
+*
+* \param c the character in consideration
+* \return true if c is a letter, a number, or an underscore, otherwise returns false
+*/
+bool CCJavaCsScalaCounter::IsAlphanumericOrUnderscore(const char &c) {
+        return isalnum(c) || c == '_';
+}
+
+/*!
+* Counts the operators and operands in a source line and stores the counts in the maps
+*
+* \param string_char_counts the map for storing the counts of strings and chars seen
+* \param word_counts the map for storing the counts of items such as variable names (these are considered operators)
+* \param bool_counts the map for storing the counts of bools (true and false)
+* \param number_counts the map for storing the counts of numbers seen (e.g. integers, floats, etc)
+* \param function_counts the map for storing the counts of functions (e.g. printf, user-defined functions invoked, etc)
+* \param nonfunction_operator_counts the map for storing the counts of the nonfunction operators (e.g. counts of '+', '-', etc)
+* \return 0 if no error and return 1 if 'line' begins a string a string or char but does not end it
+*/
+int CCJavaCsScalaCounter::CountOperatorsAndOperands(string &line,
+        map<string, unsigned int> &string_char_counts,
+        map<string, unsigned int> &word_counts,
+        map<string, unsigned int> &bool_counts,
+        map<string, unsigned int> &number_counts,
+        map<string, unsigned int> &function_counts,
+        map<string, unsigned int> &nonfunction_operator_counts) {
+
+    int count = 0;
+    int status = 0;
+
+    string curr_token;
+
+
+    // Count the strings in 'tline' and remove them from 'tline'
+    // so that we can work on the line without these strings
+    status = RemoveStringsAndChars(line, string_char_counts, true);
+    if (status != 0)
+        return 1;
+
+    RemoveSymbolsExceptOpenRoundBracketOfFunction(line, nonfunction_operator_counts, true);
+ 
+        // Insert a space after every (
+    size_t idx = line.find("("); //Modification: 2018.01, changed data type to size_t
+    while (idx != string::npos) {
+        line.replace(idx, 1, "( ");
+        idx = line.find("(", idx + 2);
+    }
+
+    // Get tokens using the blank space as the delimiter
+    // Tokenize line
+    vector<string> tokens;
+    istringstream iss(line);
+    string tmp_token;
+    while (iss >> tmp_token) {
+        tokens.push_back(tmp_token);
+    }
+
+    string token;
+    // Parse tokens for variables, numbers, and bools
+    for (vector<string>::iterator it = tokens.begin(); it != tokens.end(); it++) {
+        token = *it;
+        if (token.size() == 0)
+            continue;
+
+        if (keyword_operators.find(token) != keyword_operators.end()) {
+            nonfunction_operator_counts[token]++;
+        } else if (token[token.size() - 1] == '(') {
+            function_counts[(token.substr(0, token.size() - 1))]++;
+            nonfunction_operator_counts["("]++;
+        } else if (token[0] >= '0' && token[0] <= '9') {
+            // number
+            number_counts[token]++;
+            count++;
+        } else if (token == "true" || token == "false") {
+            // boolean
+            bool_counts[token]++;
+        } else if (IsAlphanumericOrUnderscore(token[0])) {
+            word_counts[token]++;
+        }
+    }
+    return 0;
+}
+
+/*!
+* Calculates Halstead's volume for the file and for each function within the file,
+* storing the computed values in result.
+*
+* \param fmapModBak the filemap containing the lines of the file without any comments
+* \param result the results structure that contains variables for storing Halstead's volume
+* \return 0 if the function did not encounter any errors or return 1 if there was an error
+*/
+int CCJavaCsScalaCounter::FindHalsteadsVolume(filemap fmapModBak, results* result) {
+        size_t curr_line_idx = 0;
+        bool has_function_name = false;
+    string line;
+    string function_name = "";
+    map<string, unsigned int> curr_string_and_char_operand_counts;
+    map<string, unsigned int> curr_word_operand_counts;
+    map<string, unsigned int> curr_bool_operand_counts;
+    map<string, unsigned int> curr_number_operand_counts;
+    map<string, unsigned int> curr_function_operator_counts;
+    map<string, unsigned int> curr_nonfunction_operator_counts;
+    bool encountered_error = false;
+    int status = 0;
+
+    while (curr_line_idx < fmapModBak.size()) {
+        line = CUtil::TrimString(fmapModBak[curr_line_idx].line, 0);
+        has_function_name = IsFunctionDefinition(curr_line_idx, fmapModBak, function_name);
+
+        if (has_function_name) {
+            // process until end of function and calculate halsteads volume and put into class variable
+            // reset counts for functions
+            curr_string_and_char_operand_counts.clear();
+            curr_word_operand_counts.clear();
+            curr_bool_operand_counts.clear();
+            curr_number_operand_counts.clear();
+
+            curr_function_operator_counts.clear();
+            curr_nonfunction_operator_counts.clear();
+
+            while (true) {
+                //Modification : 2018.05 Function not being used
+				/*curr_line_idx = GetLineUntilEndOfMultistringIfAny(curr_line_idx, line, fmapModBak, curr_nonfunction_operator_counts);*/
+
+                status = CountOperatorsAndOperands(line,
+                                                   curr_string_and_char_operand_counts,
+                                                   curr_word_operand_counts,
+                                                   curr_bool_operand_counts,
+                                                   curr_number_operand_counts,
+                                                   curr_function_operator_counts,
+                                                   curr_nonfunction_operator_counts);
+                if (status != 0)
+                        return 1;
+
+                if (IsLastLineOfFunction(curr_nonfunction_operator_counts) ||
+                        curr_line_idx >= fmapModBak.size() - 1) {
+                    // Store per function counts
+                    result->func_string_and_char_operand_counts[function_name] = curr_string_and_char_operand_counts;
+                    result->func_word_operand_counts[function_name] = curr_word_operand_counts;
+                    result->func_bool_operand_counts[function_name] = curr_bool_operand_counts;
+                    result->func_number_operand_counts[function_name] = curr_number_operand_counts;
+
+                    result->func_function_operator_counts[function_name] = curr_function_operator_counts;
+                    result->func_nonfunction_operator_counts[function_name] = curr_nonfunction_operator_counts;
+
+                    result->func_halsteads_volume[function_name] = CalculateHalsteadsVolumeFromCounts(
+                                                                          curr_string_and_char_operand_counts,
+                                                                          curr_word_operand_counts,
+                                                                          curr_bool_operand_counts,
+                                                                          curr_number_operand_counts,
+                                                                          curr_function_operator_counts,
+                                                                          curr_nonfunction_operator_counts);
+                    if (result->func_halsteads_volume[function_name] < 0)
+                        encountered_error = true;
+
+                    break;
+                }
+
+                curr_line_idx++;
+                line = fmapModBak[curr_line_idx].line;
+            }
+        } else {
+			//Modification : 2018.05 Function not being used 
+            /*curr_line_idx = GetLineUntilEndOfMultistringIfAny(curr_line_idx, line, fmapModBak, result->file_nonfunction_operator_counts);*/
+
+            // add to file count only
+            status = CountOperatorsAndOperands(line,
+                                               result->file_string_and_char_operand_counts,
+                                               result->file_word_operand_counts,
+                                               result->file_bool_operand_counts,
+                                               result->file_number_operand_counts,
+                                               result->file_function_operator_counts,
+                                               result->file_nonfunction_operator_counts);
+            if (status != 0)
+                return 1;
+        }
+
+        curr_line_idx++;
+    }
+
+    // Calculator halsteads volume for file
+    // but first sum up all the per-function operators and operands to get the counts for the whole file
+    SumUp(result->func_string_and_char_operand_counts, result->file_string_and_char_operand_counts);
+    SumUp(result->func_word_operand_counts, result->file_word_operand_counts);
+    SumUp(result->func_bool_operand_counts, result->file_bool_operand_counts);
+    SumUp(result->func_number_operand_counts, result->file_number_operand_counts);
+
+    // eg + - == and keywords
+    SumUp(result->func_nonfunction_operator_counts, result->file_nonfunction_operator_counts);
+
+    // eg printf
+    SumUp(result->func_function_operator_counts, result->file_function_operator_counts);
+
+    // // Calculate Halsteads volume of the file
+    result->halsteads_volume = CalculateHalsteadsVolumeFromCounts(result->file_string_and_char_operand_counts,
+                                                                  result->file_word_operand_counts,
+                                                                  result->file_bool_operand_counts,
+                                                                  result->file_number_operand_counts,
+                                                                  result->file_function_operator_counts,
+                                                                  result->file_nonfunction_operator_counts);
+
+    if (result->halsteads_volume < 0)
+        encountered_error = true;
+
+    if (encountered_error)
+        return 1;
+
+    return 0;
+}
+
+//Modification: 2018.01 Integration ends

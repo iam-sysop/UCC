@@ -171,6 +171,9 @@
     <ClCompile Include="src\UCCThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FunctionParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CAdaCounter.h">
@@ -329,5 +332,8 @@
     <ClInclude Include="src\UCCThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="src\FunctionParser.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

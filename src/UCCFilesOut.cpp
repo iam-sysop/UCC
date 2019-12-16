@@ -56,6 +56,7 @@
 #include <string>
 #include <ctime>
 #include <sstream>
+#include <math.h> // Modification: 2018.01 Integration
 #include "UCCAfterLibraryIncludes.h"
 
 using namespace std;
@@ -68,6 +69,7 @@ using namespace std;
 #include "UCCFilesOut.h"
 
 
+#define UNUSED(x) (void)(x) //Modification: 2018.05
 #define DUP_PAIRS_OUTFILE		"DuplicatePairs.txt"
 #define DUP_PAIRS_OUTFILE_CSV	"DuplicatePairs.csv"
 
@@ -149,7 +151,7 @@ int PrintFileHeader(ofstream &pout, const string &title, const string &cmd) // M
 			myOutput = "USC Unified CodeCount (UCC)";
 			PrintFileHeaderLine(pout, myOutput);
 
-			myOutput = "(c) Copyright 1998 - 2016 University of Southern California"; // Modification: 2015.12
+			myOutput = "(c) Copyright 1998 - 2018 University of Southern California"; // Modification: 2015.12
 			PrintFileHeaderLine(pout, myOutput);                                      // Modification: 2011.10
 			pout << endl;
 
@@ -181,7 +183,8 @@ int PrintFileHeader(ofstream &pout, const string &title, const string &cmd) // M
 				{
 					string proc_quote = "";
                     
-                    for (int i = 0; i < myOutput.size(); i++) {
+                    //Modification: 2018.01, changed variable i from integer to size_t
+                    for (size_t i = 0; i < myOutput.size(); i++) {
 						proc_quote += myOutput[i];
 						if (myOutput[i] == '"')
 							proc_quote += '"';
@@ -274,7 +277,8 @@ int PrintFileHeaderLine(ofstream &pout, const string &line)
 		bool containsComma = false;
 		bool containsQuote = false;
 
-        for (int i = 0; i < myOutput.size(); i++) {
+        //Modification: 2018.01, changed variable i from integer to size_t
+        for (size_t i = 0; i < myOutput.size(); i++) {
 			if (myOutput[i] == ',' || iscntrl(myOutput[i]))
 			{
 				containsComma = true;
@@ -7229,9 +7233,315 @@ int PrintComplexityResults( CounterForEachLangType & CounterForEachLanguage,
 	// print cyclomatic complexity
 	PrintCyclomaticComplexity(useListA, outputFileNamePrePend, printDuplicates);
 
-	return 1;
+        /* Modification: 2017.10
+        *  Added call to PrintMaintainabilityIndex Function*/
+
+        //print maintainability index 
+        PrintMaintainabilityIndex(useListA, outputFileNamePrePend, printDuplicates);
+        return 1;
 }
 
+//Modification: 2018.01 Integration starts
+/*!
+* 1.Function Description:
+*        Prints the maintainability index results.
+*    return method status
+*
+* 2.Parameters:
+*    useListA: use file list A? (otherwise use list B)
+*    outputFileNamePrePend: name to prepend to the output file
+*    printDuplicates: print duplicate files? (otherwise print unique files)
+*
+* 3.Creation Time And Owner:
+*        Version: 2017.__
+*/
+int PrintMaintainabilityIndex(const bool useListA, const string &outputFileNamePrePend, const bool printDuplicates)     // Modification: 2017.__
+{
+        if (useListA)
+        {
+                if (printDuplicates && duplicateFilesInA2.size() < 1)
+                        return 1;
+        }
+        else
+        {
+                if (printDuplicates && duplicateFilesInB2.size() < 1)
+                        return 1;
+        }
+
+        SourceFileList* mySourceFile = (useListA) ? &SourceFileA : &SourceFileB;                                // 
+        bool CC2_found = false;
+
+        unsigned long   fileCount = 0L;
+
+        // check for counts
+        for (SourceFileList::iterator itt2 = mySourceFile->begin(); itt2 != mySourceFile->end(); itt2++)                        // 
+        {
+                if ((!printDuplicates && !itt2->second.duplicate) || (printDuplicates && itt2->second.duplicate))
+                {
+                        if (itt2->second.cmplx_cycfunct_CC2_count.size() > 0)
+                        {
+                                CC2_found = true;
+                        }
+                }
+        }
+        if (!CC2_found)
+                return 1;
+
+        // open file and print headers
+        ofstream maintainabilityIndexOutputFile, maintainabilityIndexOutputFileCSV;
+
+        if (print_ascii || print_legacy)
+        {
+                string maintainabilityIndexOutputFileName = outDir + outputFileNamePrePend;
+                maintainabilityIndexOutputFileName.append(OUTPUT_FILE_MAINTAIN_INDEX);
+                maintainabilityIndexOutputFile.open(maintainabilityIndexOutputFileName.c_str(), ofstream::out);
+                if (!maintainabilityIndexOutputFile.is_open())
+                {
+                        string err = "Error: Unable to create file (";
+                        err += maintainabilityIndexOutputFileName;
+                        err += "). Operation aborted";
+                        userIF->AddError(err, false, 1);
+                        return 0;
+                }
+
+                PrintFileHeader(maintainabilityIndexOutputFile, "MAINTAINABILITY INDEX RESULTS", cmdLine);
+
+                PrintFileHeaderLine(maintainabilityIndexOutputFile, "RESULTS BY FILE");
+                maintainabilityIndexOutputFile << endl;
+                maintainabilityIndexOutputFile << "Maintainability Index (MI)" << endl;
+                maintainabilityIndexOutputFile << "  3-metric";
+                maintainabilityIndexOutputFile << "  4-metric";
+                maintainabilityIndexOutputFile << "       |   Name" << endl;
+                maintainabilityIndexOutputFile << "----------";
+                maintainabilityIndexOutputFile << "------------------------------------+-----------------------" << endl;
+        }
+        if (print_csv)
+        {
+                string maintainabilityIndexOutputFileNameCSV = outDir + outputFileNamePrePend;
+                maintainabilityIndexOutputFileNameCSV.append(OUTPUT_FILE_MAINTAIN_INDEX_CSV);
+                maintainabilityIndexOutputFileCSV.open(maintainabilityIndexOutputFileNameCSV.c_str(), ofstream::out);
+                if (!maintainabilityIndexOutputFileCSV.is_open())
+                {
+                        string err = "Error: Unable to create file (";
+                        err += maintainabilityIndexOutputFileNameCSV;
+                        err += "). Operation aborted";
+                        userIF->AddError(err, false, 1);
+                        return 0;
+                }
+
+                PrintFileHeader(maintainabilityIndexOutputFileCSV, "MAINTAINABILITY INDEX RESULTS", cmdLine);
+
+                PrintFileHeaderLine(maintainabilityIndexOutputFileCSV, "RESULTS BY FILE");
+                maintainabilityIndexOutputFileCSV << endl;
+                maintainabilityIndexOutputFileCSV << "Maintainability Index (MI)" << endl;
+                maintainabilityIndexOutputFileCSV << "3-metric,4-metric,File Name" << endl;
+        }
+        // print maintainability index for each file
+        unsigned int fcc2 = 0, fhv = 0, fsloc = 0, fnum_comments = 0, nffunc = 0, tcc2 = 0, thv = 0, tsloc = 0, tnum_comments = 0, ntfunc = 0, total_lines = 0;
+        double afcc2 = 0.0, atcc2 = 0.0, afhv = 0.0, athv = 0.0, afsloc = 0.0, atsloc = 0.0, afpcm = 0.0, atpcm = 0.0, fmi = 0.0, tmi = 0.0, fmi2 = 0.0, tmi2 = 0.0;     // averages
+
+        fileCount = 0;          // 
+        for (SourceFileList::iterator itt2 = mySourceFile->begin(); itt2 != mySourceFile->end(); itt2++)
+        {
+                if (itt2->second.file_name_isEmbedded == true)    // 
+                        continue;
+
+                if (!(itt2->second.class_type == C_CPP || itt2->second.class_type == JAVA || itt2->second.class_type == CSHARP 
+                   || itt2->second.class_type ==  CSHARP_HTML || itt2->second.class_type ==  CSHARP_XML||  itt2->second.class_type ==  CSHARP_ASP_S))
+                    continue;
+                
+                fcc2 = fhv = fsloc = fnum_comments = nffunc = 0;
+                afcc2 = afhv = afsloc = afpcm = 0.;
+                if ((!printDuplicates && !itt2->second.duplicate) || (printDuplicates && itt2->second.duplicate))
+                {
+                        filemap::iterator it;
+                        if (itt2->second.class_type == WEB)
+                        {
+                                // sum embedded web files
+                                SourceFileList::iterator startpos = itt2;
+                                SourceFileList::iterator endpos = ++startpos;
+                                for (; endpos != mySourceFile->end(); endpos++)
+                                {
+                                        if (endpos->second.file_name_isEmbedded == false)
+                                                break;
+
+                                        for (it = endpos->second.cmplx_cycfunct_CC2_count.begin(); it != endpos->second.cmplx_cycfunct_CC2_count.end(); it++)
+                                        {
+                                                if ((*it).line.size())  // Must have a Function Name to be counted
+                                                {
+                                                        fcc2 += (*it).lineNumber;
+                                                        nffunc++;
+                                                }
+
+                                        }
+                                }
+                        }
+                        else
+                        {
+                                for (it = itt2->second.cmplx_cycfunct_CC2_count.begin(); it != itt2->second.cmplx_cycfunct_CC2_count.end(); it++)
+                                {
+                                        if ((*it).line.size())  // Must have a Function Name to be counted
+                                        {
+                                                fcc2 += (*it).lineNumber;
+                                                nffunc++;
+                                        }
+                                }
+                        }
+                        if (fcc2 < 1)
+                                continue;
+
+                        fileCount++;
+
+                        //Extended Cyclomatic Complexity
+                        tcc2 += fcc2;
+
+                        //Total Number of Functions
+                        ntfunc += nffunc;
+
+                        //Halstead Volume
+                        fhv = itt2->second.halsteads_volume;
+                        thv += fhv;
+
+                        //SLOC
+                        fsloc = itt2->second.SLOC_lines[PHY];
+                        tsloc += fsloc;
+
+                        //Percentage of comments
+                        fnum_comments = itt2->second.comment_lines + itt2->second.e_comm_lines;
+                        tnum_comments += fnum_comments;
+                        total_lines += (itt2->second.total_lines-itt2->second.blank_lines);
+
+                        if (nffunc > 0) {
+                                afcc2 = (float)fcc2 / (float)nffunc;
+                                afhv = (float)fhv / (float)nffunc;
+                                afsloc = (float)fsloc / (float)nffunc;
+                                afpcm = (((float)fnum_comments / (float)(itt2->second.total_lines-itt2->second.blank_lines))*100.0)/(float)nffunc;
+
+                        }
+
+                        //MI Calculation
+
+                        //fix in 2018.07.16
+                        // when afhv is 0 it will become inf
+                        if(afhv ==0 ){
+                        	fmi = 171 - 0.23 * afcc2 - 16.2 * log(afsloc);
+                        }else{
+                        	fmi = 171 - 5.2 * log(afhv) - 0.23 * afcc2 - 16.2 * log(afsloc);
+                        }
+
+                        fmi2 = fmi + 50.0 * sin(sqrt(2.46*afpcm));
+
+                        if (print_ascii || print_legacy)
+                        {
+                                maintainabilityIndexOutputFile.setf(ofstream::right);
+
+                                maintainabilityIndexOutputFile.setf(ios::fixed, ios::floatfield);
+                                maintainabilityIndexOutputFile.width(10);
+                                maintainabilityIndexOutputFile.precision(2);
+                                maintainabilityIndexOutputFile << fmi;
+
+                                maintainabilityIndexOutputFile.setf(ios::fixed, ios::floatfield);
+                                maintainabilityIndexOutputFile.width(10);
+                                maintainabilityIndexOutputFile.precision(2);
+                                maintainabilityIndexOutputFile << fmi2;
+
+                                maintainabilityIndexOutputFile.unsetf(ofstream::right);
+                                maintainabilityIndexOutputFile << "    ";
+                                maintainabilityIndexOutputFile.setf(ofstream::left);
+                                maintainabilityIndexOutputFile << "   |   " << itt2->second.file_name << endl;
+                        }
+                        if (print_csv)
+                        {
+                                maintainabilityIndexOutputFileCSV.setf(ios::fixed, ios::floatfield);
+                                maintainabilityIndexOutputFileCSV.precision(2);
+                                maintainabilityIndexOutputFileCSV << fmi << ",";
+                                maintainabilityIndexOutputFileCSV << fmi2 << ",";
+                                maintainabilityIndexOutputFileCSV << itt2->second.file_name << endl;
+                        }
+                }
+        }
+
+        // Print Average MI
+        if (ntfunc)
+        {
+                        atcc2 = (float)tcc2 / (float)ntfunc;
+                        athv = (float)thv / (float)ntfunc;
+                        atsloc = (float)tsloc / (float)ntfunc;
+                        atpcm = (((float)tnum_comments / (float)total_lines)*100.0) / (float)ntfunc;
+
+                        if(athv == 0 && atsloc == 0){
+                        	tmi = 171  - 0.23 * atcc2;
+                        }else if (athv == 0)
+                        {
+                        	tmi = 171  - 0.23 * atcc2 - 16.2 * logf(atsloc);
+                        }else if (atsloc == 0)
+                        {
+                        	tmi = 171 - 5.2 * logf(athv) - 0.23 * atcc2;
+                        }else{
+                        	tmi = 171 - 5.2 * logf(athv) - 0.23 * atcc2 - 16.2 * logf(atsloc);
+                        }
+
+                        tmi2 = tmi + 50.0 * sinf(sqrtf(2.46*atpcm));
+        }
+
+        float   functionsPerFile = 0.;
+        if (fileCount)
+                functionsPerFile = (float)ntfunc / (float)fileCount;
+        string functionsPerFileStr;
+        FloatToStr(functionsPerFile, functionsPerFileStr);
+
+        if (print_ascii || print_legacy)
+        {
+                maintainabilityIndexOutputFile << "----------";
+
+                maintainabilityIndexOutputFile << "------------------------------------+-----------------------" << endl;
+
+                maintainabilityIndexOutputFile.unsetf(ofstream::left);
+                maintainabilityIndexOutputFile.setf(ofstream::right);
+                maintainabilityIndexOutputFile.setf(ios::fixed, ios::floatfield);
+                maintainabilityIndexOutputFile.width(10);
+                maintainabilityIndexOutputFile.precision(2);
+                maintainabilityIndexOutputFile << tmi;
+
+                maintainabilityIndexOutputFile.setf(ios::fixed, ios::floatfield);
+                maintainabilityIndexOutputFile.width(10);
+                maintainabilityIndexOutputFile.precision(2);
+                maintainabilityIndexOutputFile << tmi2;
+
+
+                // add Averages    |   #.#  Functions per File   (Averages = Totals/Functions)
+                maintainabilityIndexOutputFile << "" << "          System MI       |   (" << functionsPerFileStr << "  Functions per File)" << endl << endl;
+        }
+
+        if (print_csv)
+        {
+                maintainabilityIndexOutputFileCSV.setf(ios::fixed, ios::floatfield);
+                maintainabilityIndexOutputFileCSV.precision(2);
+                maintainabilityIndexOutputFileCSV << endl;
+                maintainabilityIndexOutputFileCSV << tmi;
+
+                maintainabilityIndexOutputFileCSV.setf(ios::fixed, ios::floatfield);
+                maintainabilityIndexOutputFileCSV.precision(2);
+                maintainabilityIndexOutputFileCSV << "," << tmi2;
+
+                maintainabilityIndexOutputFileCSV << ",System MI" << ",(" << functionsPerFileStr << " Functions per File)" << endl << endl;
+        }
+
+        if (print_ascii || print_legacy) {
+                // Modification: 2016.12
+                PrintFileFooter(maintainabilityIndexOutputFile);
+                maintainabilityIndexOutputFile.close();
+        }
+        if (print_csv) {
+                PrintFileFooter(maintainabilityIndexOutputFileCSV);
+                maintainabilityIndexOutputFileCSV.close();
+        }
+
+
+        return 1;
+}
+
+//Modification: 2018.01 Integration ends
 
 /*!
 * 1.Function Description:
@@ -8755,6 +9065,10 @@ void AddTraceLine( const int lineNum, const string type, const string line )
     
 	if ( lineNum < 1 )
 		return;
+	//Modification: 2018.05, Unused argument warnings in GUI
+    UNUSED(type);           
+    UNUSED(line);
+
 /*  COMMENTED OUT 
 Stack Dump should be more useful and have less performance overhead.
 Also nobody likes looking at large log files when only the last part is of interest.

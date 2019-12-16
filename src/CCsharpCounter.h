@@ -25,6 +25,8 @@ public:
 protected:
 	virtual int PreCountProcess(filemap* fmap);
 	virtual int ReplaceQuote(string &strline, size_t &idx_start, bool &contd, char &CurrentQuoteEnd);
+        bool HasOneDoubleQuote(string line);
+        int GetLineUntilEndOfMultistringIfAny(int curr_line_idx, string &line, filemap &fmap, map<string, unsigned int> &nonfunction_operator_counts);
 
 private:
 	bool isVerbatim;

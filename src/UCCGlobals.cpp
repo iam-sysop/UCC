@@ -87,6 +87,7 @@ string		cmdLine;						//!< Executed command line string
 string userHeaderFile;                      //!< Custom Header file path 
 
 bool		isDiff = false;					//!< Has differencing been requested (-d)?
+bool           isFuncDiff = false;                             //!< Has function level differencing been requested (-funcDiff)? Modification 2017.02
 bool		visualDiff = false;				//!< Print visual diff
 
 bool		isDup = true;					//!< Is Duplicate checking wanted ? ( duplicate_threshold >= 0.0 )

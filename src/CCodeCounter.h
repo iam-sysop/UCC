@@ -45,6 +45,13 @@ public:
 	StringVector  cmplx_cond_list;			//!< Conditionals (complexity)
 	StringVector  cmplx_logic_list;			//!< Logicals (complexity)
 	
+        //Modification: 2018.01 Integration starts
+        StringVector three_char_operator_list;  //!< List of three character operators (for Halsteads volume calculations)
+        StringVector two_char_operator_list;    //!< List of two character operators (for Halsteads volume calculations)
+        StringVector one_char_operator_list;    //!< List of one character operators (for Halsteads volume calculations)
+        set<string>  keyword_operators;         //!< List of reserved keyword operators (for Halsteads volume calculations)
+        //Modification: 2018.01 Integration ends
+  
 	// Auxillary meanings keywords/operators.  PASCAL ex: IF/ELSE IF, REPEAT-UNTIL, WHILE, FOR, CASE OF, CASE, Database exception clause
 	StringVector  aux_meaning_keys;			//!< Cyclomatic Complexity rings keywords/Operators, OO keywords, FP keywords
 	UIntVector    aux_meaning_vals;			//!< Cyclomatic Complexity rings values, OO values, FP values
@@ -149,6 +156,7 @@ protected:
 	virtual int PreCountProcess(filemap* /*fmap*/) { return 0; }
 	int CountBlankSLOC(filemap* fmap, results* result);
 	virtual int CountCommentsSLOC(filemap* fmap, results* result, filemap* fmapBak = NULL);
+        virtual int FindHalsteadsVolume(filemap, results* ) { return -1; } //Modification: 2018.05. Integration
 
 #ifdef	ENABLE_1_PASS_PARSER
 //!< These support fewer passes file parsing

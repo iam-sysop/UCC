@@ -137,6 +137,7 @@
     <ClCompile Include="src\CXMidasCounter.cpp" />
     <ClCompile Include="src\CXmlCounter.cpp" />
     <ClCompile Include="src\DiffTool.cpp" />
+	<ClCompile Include="src\FunctionParser.cpp" />
     <ClCompile Include="src\LangUtils.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MainObject.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="src\CXMidasCounter.h" />
     <ClInclude Include="src\CXmlCounter.h" />
     <ClInclude Include="src\DiffTool.h" />
+	<ClCompile Include="src\FunctionParser.h" />
     <ClInclude Include="src\LangUtils.h" />
     <ClInclude Include="src\MainObject.h" />
     <ClInclude Include="src\UCCExceptDump.h" />

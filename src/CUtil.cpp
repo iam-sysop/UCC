@@ -20,6 +20,7 @@ using namespace std;
 #ifdef UNIX          // Modification: 2009.01
 	#include <dirent.h>
 	#include <sys/stat.h>
+        #include <unistd.h>  //Modification: 2018.01
 #else
 	#include <direct.h>
 	#include <io.h>
@@ -1273,7 +1274,6 @@ int CUtil::ListAllFiles(string & folder,
     // process folder
     if (!GetFileList(tmpList, folder, symLinks))
         return 0;
-
 	unsigned long long fileSizeBytes;
 	bool               extensionFiltering = true;
 	if ( fileExtList.at(0) == "*.*" || fileExtList.at(0) == "*" )
@@ -1581,6 +1581,38 @@ bool CUtil::MatchFilename(const string &filename, const string &matchstr)
 }
 
 /*!
+*1. Function Description:
+*    For a given path string, whis method replace the path string with
+*    current file folder path.
+*    Return file status
+*   
+*2. Parameters:
+*   path: path string what will be replaced with current path
+*
+*3. Creation time and Owner:
+*       Version 2017.02
+*       Version 2018.01
+*/
+int CUtil::GetPath(string &path)
+{
+        char buffer[MAX_PATH_SIZE];
+#ifdef UNIX
+        if(getcwd(buffer, MAX_PATH_SIZE) == NULL)
+    {
+        return 0;  
+    }
+#else
+    if(_getcwd(buffer, MAX_PATH_SIZE) == NULL)
+    {
+        return 0;
+    }
+#endif
+    path.assign(buffer);
+    return 1;
+}
+
+
+/*!
 * 1. Function Description:
 *    For a given path, this method creates the specified directory path
 *    including all required sub-directories.
@@ -1656,6 +1688,87 @@ int CUtil::MkPath(const string &path)
     return 1;
 }
 
+/*!             
+* 1. Function Description:              
+*    For a given path, this method delete all directory and its content.                
+*    Return file status         
+*               
+* 2. Parameters:                
+*    path: path to delete               
+*               
+* 3. Creation time and Owner:           
+*    Version 2017.02            
+*/
+int CUtil::RmPath(const string &path)
+{
+    string tpath;
+#ifdef UNIX             
+    DIR *d = opendir(path.c_str());
+    size_t path_len = strlen(path.c_str());
+    int r = -1;
+    if (d)              
+    {    
+         struct dirent *p;     
+         r = 0;
+         while (!r && (p=readdir(d)))     
+         {              
+                int r2 = -1;
+                char *buf;              
+                size_t len;      
+                /* Skip the names "." and ".." as we don't want to recurse on them. */       
+                if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))         
+                        continue;
+                len = path_len + strlen(p->d_name) + 2;
+                buf = (char *) malloc(len);
+                snprintf(buf, len, "%s/%s", path.c_str(), p->d_name);
+                if (buf)
+                {                
+                        r2 = unlink(buf);
+                        free(buf);
+                }
+                r = r2;
+         }
+         closedir(d);
+    }
+    if (!r)
+        r = rmdir(path.c_str());
+    if (r!=0)
+        return 0;
+#else
+    struct _finddata_t c_file;
+    ptrdiff_t hFile;
+    string findPath = path + "\\*.*";
+
+    // the first file is obtained
+    hFile = _findfirst(findPath.c_str(), &c_file);
+
+    // If the dir doesn't exist
+    if (hFile == -1)
+        return(false);
+
+    int r = 0;
+    string fullPath;
+    // each file is processed until the last one
+    while (!r && _findnext(hFile, &c_file) == 0)
+    {
+        int r2 = -1;
+        // Skip the names "." and ".." as we don't want to recurse on them
+        if (!(strcmp(".", c_file.name)) || !(strcmp("..", c_file.name)))
+                continue;
+        fullPath = path + "\\" + c_file.name;
+
+        r = _unlink(fullPath.c_str());
+    }
+    // close the directory
+    _findclose(hFile);
+
+    if (!r)
+        r = _rmdir(path.c_str());
+        if (r!=0)
+        return 0;
+#endif
+    return 1;
+}
 
 /*!
 * 1. Function Description:

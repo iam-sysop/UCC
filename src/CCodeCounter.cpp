@@ -244,6 +244,9 @@ int CCodeCounter::CountSLOC(filemap* fmap, results* result)
 		SAVE_TO_1( "CountDirectiveSLOC" );
 		CountDirectiveSLOC(&fmapMod, result, &fmapModBak);
 
+                SAVE_TO_1( "FindHalsteadsVolume" );
+                FindHalsteadsVolume(fmapModBak, result);
+               
 		SAVE_TO_1( "LanguageSpecificProcess" );
 		LanguageSpecificProcess(&fmapMod, result, &fmapModBak);
 	}

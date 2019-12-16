@@ -22,6 +22,11 @@ public:
 	// Set the language so base class constructors set values as needed
 	CCCounter( string lang = "C_CPP" );
 
+        //Modification: 2018.01 Integration starts
+        bool EndsWithOpenString(const string &line);
+        int GetLineUntilEndOfMultistringIfAny(int curr_line_idx, string &line, filemap &fmap, map<string, unsigned int> &nonfunction_operator_counts);
+
+        //Modification: 2018.01 Integration ends
 private:
 // This class is NOT copied or assigned to.
 // Avoid copying of this class.  Avoid assignment of this class.

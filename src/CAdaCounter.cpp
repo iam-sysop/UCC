@@ -765,6 +765,9 @@ int CAdaCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 	idx = CUtil::FindKeyword(line, "end");
 	if (idx != string::npos)
 	{
+                // Modification: 2018.01
+                if (!functionStack.empty())
+                {
             	idx = line.find(functionStack.back().line);
             	if (idx != string::npos)
 		{
@@ -773,6 +776,7 @@ int CAdaCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			functionStack.pop_back();
 			return 1;
 		}
+                }
 	}
 	
 	return 0;

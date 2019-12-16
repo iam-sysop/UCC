@@ -286,7 +286,8 @@ void CmpMngr::FindModifiedLines(srcLineVector* aHm, srcLineVector* bHm)
                             stringList::iterator tmpSLI = mySLI++;
                             mySSI->second.erase(tmpSLI);
                             deletedA = true;
-                            ++nChangedLines;
+                            nChangedLines+=1;
+
                         }
                         
                         if (myI->second.size() == 0)
@@ -389,12 +390,13 @@ void CmpMngr::FindUnmodifiedLines(srcLineVector* aHm, srcLineVector* bHm)
             
             while (base_ptr->size() > 0 && comp_ptr->size() > 0) // Modification: 2014.08
             {
+
                 vector<size_t>::const_iterator base_iter = base_ptr->end() - 1;
                 vector<size_t>::const_iterator comp_iter = comp_ptr->end() - 1;
                 mapping_list.push_back(mapping_code(*base_iter, *comp_iter, UNMODIFIED));
                 base_ptr->pop_back();
                 comp_ptr->pop_back();
-                nNochangedLines++;
+                nNochangedLines+=1;
             }
             
             if ((*myI).second.size() == 0)

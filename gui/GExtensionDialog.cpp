@@ -5,10 +5,14 @@
 * This file contains the GExtensionDialog class methods.
 */
 
+#include <QFile>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
 #include "GExtensionDialog.h"
+#include <QFileDialog> //Modification: 2018.04
+#include "QFileInfo" //Modification: 2018.04
+#include "GMainWindow.h" //Modification: 2018.04 
 
 /*!
 * Constructs a GExtensionDialog object.
@@ -42,6 +46,12 @@ GExtensionDialog::GExtensionDialog(QMap<QString, QStringList *> *extensionMapDef
 			lwItem->setFont(font);
 		}
 	}
+
+        //Modification: 2018.04 Integration changes 
+        bool flag = ((GMainWindow*)parent)->checkButtonClicked;
+        if(flag){
+           ui.pushButton_2->hide();
+        } 
 
 	ui.tblExtensions->horizontalHeader()->setStretchLastSection(true);
 	connect(ui.lwLanguages, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(languageSelected(QListWidgetItem *)));
@@ -147,7 +157,7 @@ void GExtensionDialog::itemCustomContextMenuRequested(const QPoint &pos)
 	aItem = menu.addAction("Revert All Language Extensions", this, SLOT(revertAllLangExt()));
 	menu.exec(this->mapToGlobal(pos));
     //Warning fix 11.25.16
-    //(void)aItem;
+    (void)aItem;
 }
 
 /*!
@@ -277,6 +287,9 @@ void GExtensionDialog::on_btnAddExt_clicked()
 
 		customChanged = true;
 		extChanged = true;
+
+                this->updateCustomExtensions();
+                extChanged = false;
 	}
 }
 
@@ -306,6 +319,8 @@ void GExtensionDialog::on_btnRemoveExt_clicked()
 		ui.tblExtensions->removeRow(row);
 		customChanged = true;
 		extChanged = true;
+                this->updateCustomExtensions();
+                extChanged = false;
 	}
 }
 
@@ -322,16 +337,48 @@ void GExtensionDialog::on_btnClose_clicked()
 */
 void GExtensionDialog::closeEvent(QCloseEvent *)
 {
-	if (extChanged)
-	{
-		this->updateCustomExtensions();
-		extChanged = false;
-	}
 	if (customChanged)
 	{
+                ((GMainWindow*)(parent()))->writeExtensionsFile();
 		customChanged = false;
 		this->accept();
 	}
 	else
 		this->reject();
 }
+
+//Modification: 2018.04 USC starts
+void GExtensionDialog::on_pushButton_clicked()
+{
+	if (customChanged)
+	{
+        ((GMainWindow*)(parent()))->writeExtensionsFile();
+		customChanged = false;
+		this->accept();
+	}
+	else
+		this->reject();
+}
+
+void GExtensionDialog::on_pushButton_2_clicked()
+{
+    QString extensionFile="extensions.txt";
+    extensionFile = QFileDialog::getSaveFileName(this,
+            tr("Extension File"), extensionFile, tr("Extension File (*.txt)"), 0, QFileDialog::DontConfirmOverwrite);
+    if(extensionFile == "")
+        return;
+    QFileInfo fi(extensionFile);
+
+    if (!fi.exists())
+    {QFile file(extensionFile);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+    QMessageBox::warning(this, tr("File Error"), tr("Unable to open extension file: ") + extensionFile + "\n" + file.errorString() );
+    return;
+    }
+    file.close();
+    ((GMainWindow*)(parent()))->ui.txtExtensionFile->setText(extensionFile);
+    }
+    this->close();
+}
+//Modification: 2018.04 USC ends
