@@ -49,8 +49,9 @@ CmpMngr::CmpMngr(ofstream *file_stream) // Modification: 2014.08
  * 3. Creatation Time: 
  *    Version 2007.07
  *    Revised 2015.12  Changed to support single object instance (per thread) with long duration life
+ *    Revised 2016.12  Changed to return the diff details (now this function doesn't write files directly)
  */
-void CmpMngr::Compare(srcLineVector* baseFileMap, srcLineVector* compFileMap, const double match_threshold)
+string CmpMngr::Compare(srcLineVector* baseFileMap, srcLineVector* compFileMap, const double match_threshold)
 {
 	// Set default values
     MATCH_THRESHOLD = match_threshold;
@@ -102,10 +103,12 @@ void CmpMngr::Compare(srcLineVector* baseFileMap, srcLineVector* compFileMap, co
         comment or erase the line of code "ofstream *file_dump_stream;", in line 76 of CmpMngr.cpp.
     */
      //ofstream *file_dump_stream; 
-    
+	return print_info();
+/*  
 	// Check print_info Precondition
 	if ( NULL != file_dump_stream )		// Avoid call if output not possible.  Modification: 2015.12
 		print_info(file_dump_stream); // Modification 2014.08
+		*/
 }
 
 
@@ -162,10 +165,15 @@ void CmpMngr::FindModifiedLines(srcLineVector* aHm, srcLineVector* bHm)
 	{
 		// Unable to allocate memory to use
 		cout << endl << "ERROR: FindModifiedLines unable to Allocate memory.  Returning early...\n" << endl;
-		if ( NULL != x1 )
+        if ( NULL != x1 ) {
 			free( x1 );
-		if ( NULL != x2 )
+            x1 = NULL;
+        }
+        if ( NULL != x2 ) {
 			free( x2 );
+            x2 = NULL;
+        }
+
 		return;
 	}    // Modification: 2015.12
 
@@ -234,10 +242,14 @@ void CmpMngr::FindModifiedLines(srcLineVector* aHm, srcLineVector* bHm)
 							// Unable to increase memory to use
 							cout << endl << "ERROR: FindModifiedLines unable to Reallocate memory.  Returning early...\n" << endl;
 							// Better to release in reverse order of allocation
-							if ( NULL != x2 )
+                            if ( NULL != x2 ) {
 								free( x2 );
-							if ( NULL != x1 )
+                                x2 = NULL;
+                            }
+                            if ( NULL != x1 ) {
 								free( x1 );
+                                x1 = NULL;
+                            }
 							return;
 						}
 						// memset or anything else will be done within SimilarLine
@@ -314,8 +326,13 @@ void CmpMngr::FindModifiedLines(srcLineVector* aHm, srcLineVector* bHm)
     }
 
 	// Better to release in reverse order of allocation
+    if(x2) {
 	free( x2 );
+    }
+    if (x1) {
 	free( x1 );
+    }
+
 }
 
 
@@ -523,23 +540,27 @@ void CmpMngr::fill_source_code_vec(const srcLineVector *file_map, vector<string>
 /*!
  * 1. Function Description:
  *    If the parameter file_dump_stream is not null, prepare print info about line numbers of base files and compare files into file_dump_stream
- *
+ *    Revised 2016.12 Now this function doesn't write files direclty, it returns the diff details instead.
  * Precondition: file_dump_stream is NOT NULL
  *
  * 2. Parameters:
- *    file_dump_stream: pointer to the stream to store print info
+ *    file_dump_stream: pointer to the stream to store print info. This parameter is removed.  2016.10
  *
  * 3. Creation Time: 
  *    Version 2014.08
  *    Revised 2015.12  Better interface comments
+ *    Revised 2016.12  Remove file_dump_stream from function parameter list and now function returns diff details
  */
-void CmpMngr::print_info( ofstream *file_dump_stream, string * pDiff_details_str ) const
+string CmpMngr::print_info(string * pDiff_details_str ) const
 {
 	// Still check for Precondition because: It is easy and very lightweight, this is good defensive programming.
 	string		diffDetails;
 	string		numBuf;
 	for ( vector<mapping_code>::const_iterator iter = mapping_list.begin(); iter != mapping_list.end(); ++iter )
 	{
+		//Remove unmodified lines from visual diff log -- 2016.10
+		if (MARKER_TABLE[iter->marker] == "UNMODIFIED") continue;
+
 		LongToStr( (long)(iter->base_file_line_num), numBuf );
 		diffDetails += numBuf + "\t";
 
@@ -550,11 +571,7 @@ void CmpMngr::print_info( ofstream *file_dump_stream, string * pDiff_details_str
 	if ( pDiff_details_str )
 		(*pDiff_details_str) += diffDetails;
 
-	if ( file_dump_stream )
-	{
-		*file_dump_stream << diffDetails << endl;
-		file_dump_stream->flush();		// Flush RAM buffers to file in case of pending LOW Memory condition
-	}
+	return diffDetails;
 }
 
 /*!

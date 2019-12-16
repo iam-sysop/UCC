@@ -23,7 +23,7 @@
 
 using namespace std;
 
-#define PRODUCT_REVISION "2015.12"      // Modification: 2015.12
+#define PRODUCT_REVISION "2017.01"      // Modification: 2017.01
 
 #define PHY		0
 #define LOG		1
@@ -93,6 +93,7 @@ enum ClassType {
 	MATLAB,					// MATLAB
 	NEXTMIDAS,				// NeXtMidas
 	XMIDAS,					// X-Midas
+	OBJC,					// Objective C - Modifacation: 2016.07
 	PASCAL,					// Pascal
 	PERL,					// Perl
 	PHP,					// PHP

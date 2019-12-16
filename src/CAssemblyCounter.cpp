@@ -16,9 +16,13 @@ CAssemblyCounter::CAssemblyCounter()
     classtype = ASSEMBLY;
     language_name = "Assembly";
 
-    file_extension.push_back(".asm");
+    //Modification: 11.2016 Ext-4 starts
+    file_extension = CUtil::getExtensionsToLanguage("Assembly", file_extension);
+    
+    /*file_extension.push_back(".asm");
     file_extension.push_back(".s");
-    file_extension.push_back(".asm.ppc");
+    file_extension.push_back(".asm.ppc");*/
+    //Modification: 11.2016 Ext-4 ends
 
     statementSeparator = ";"; // assume it is ';' unless it conflicts with comment marker
 

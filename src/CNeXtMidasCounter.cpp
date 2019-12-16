@@ -15,7 +15,10 @@ CNeXtMidasCounter::CNeXtMidasCounter()
 	classtype = NEXTMIDAS;
 	language_name = "NeXtMidas";
 
-	file_extension.push_back(".mm");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("NeXtMidas", file_extension);
+    
+	//file_extension.push_back(".mm");
 
 	exclude_keywords.push_back("enddo");
 	exclude_keywords.push_back("endfor");
@@ -37,4 +40,8 @@ CNeXtMidasCounter::CNeXtMidasCounter()
 	cmplx_logic_list.push_back("feq"); 
 	cmplx_logic_list.push_back("noeq");
 	cmplx_logic_list.push_back("nfeq");
+
+    //Modification 2016.11; USC
+    cmplx_cyclomatic_list.push_back("do");
+    cmplx_cyclomatic_list.push_back("foreach");
 }

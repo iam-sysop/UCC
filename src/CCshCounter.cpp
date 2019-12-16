@@ -15,8 +15,11 @@ CCshCounter::CCshCounter()
 	classtype = CSH;
 	language_name = "C-Shell";
 
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("C-Shell", file_extension);
+    /*
 	file_extension.push_back(".csh");
-	file_extension.push_back(".tcsh");
+	file_extension.push_back(".tcsh")*/
 
 	QuoteStart = "\"'";
 	QuoteEnd = "\"'";

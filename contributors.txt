@@ -9,7 +9,7 @@ All UCC versions:
 2009 - Present
 * Marilyn A. Sperka, thank you for being a valuable member of the UCC team, training everyone on the team, answering questions, and providing valuable insight. 
 
-2015.12
+2014 - Present
 * Randy Maxwell, thank you for making major performance improvements to UCC, modifying the algorithms to consume less RAM, implementing the Scala parser, and implementing UCC to be multithreaded!
 
 2009 - 2014

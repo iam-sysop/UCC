@@ -1,42 +1,24 @@
-//! Code counter class methods for the C/C++ languages.
+//! Code counter class methods for the Objective C languages.
 /*!
-* \file CCCounter.cpp
+* \file CObjCCounter.cpp
 *
-* This file contains the code counter class methods for the C/C++ languages.
-*
-* Changed UCC 2015.12 release by Randy Maxwell
-*   Addition of file extensions .inl .inc to support working with Linux and Boost for example
-*		.cxx .hxx as comments ready for anyone wanting Legacy C++ file support
+* This file contains the code counter class methods for the Objective C languages.
 */
 
-#include "CCCounter.h"
+#include "CObjCCounter.h"
 
 /*!
-* Constructs a CCCounter object.
+* Constructs a CObjCCounter object.
 */
-CCCounter::CCCounter( string lang ) : CCJavaCsScalaCounter( lang )
+
+CObjCCounter::CObjCCounter(string lang) : CCJavaCsScalaCounter(lang)
 {
-	classtype = C_CPP;
-	language_name = "C_CPP";
+	classtype = OBJC;
 
-    //Modification: 11.2016 Ext-4 starts
-    file_extension = CUtil::getExtensionsToLanguage("C_CPP", file_extension);
-
-	/*file_extension.push_back(".c");
-	file_extension.push_back(".cc");
-	file_extension.push_back(".cpp");
-	file_extension.push_back(".cxx");	// Legacy C++  Enable if you want
-	file_extension.push_back(".inl");	// inline files for example see Boost libraries		Modification: 2015.12
-
-	// These file types are not processed when doing Cyclomatic Complexity calculations
-	file_extension.push_back(".h");
-	file_extension.push_back(".hh");
-	file_extension.push_back(".hpp");
-	file_extension.push_back(".hxx");	// Legacy C++  Enable if you want
-	file_extension.push_back(".inc");	// include files for example see Linux				Modification: 2015.12 */
-    
-    //Modification: 11.2016 Ext-4 ends
-
+	language_name = "OBJC";
+	//file_extension.push_back(".m"); share extension with Matlab, need to specify in extfile
+	//file_extension.push_back(".mm"); share extension with NeXtMidas, need to specify in extfile
+	//file_extension.push_back(".h"); share extension with C_CPP, need to specify in extfile
 
 	directive.push_back("#define");
 	directive.push_back("#dictionary");
@@ -54,8 +36,8 @@ CCCounter::CCCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	directive.push_back("#pragma");
 	directive.push_back("#undef");
 	directive.push_back("#using");
-    
-    directive.push_back("# define");
+
+	directive.push_back("# define");
 	directive.push_back("# dictionary");
 	directive.push_back("# error");
 	directive.push_back("# if");
@@ -71,6 +53,22 @@ CCCounter::CCCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	directive.push_back("# pragma");
 	directive.push_back("# undef");
 	directive.push_back("# using");
+
+	// directive.push_back("@interface"); // in Objective C, althought "@interface" should be compile direction, the interface definition should be excutable line
+	// directive.push_back("@autoreleasepool"); count as excutable line now, will double count as compile direction and excutable line
+	// directive.push_back("@synchronized"); count as excutable line now, will double count as compile direction and excutable line
+	// directive.push_back("@selector"); // not very sure how to use it now
+	directive.push_back("@implementation");
+	directive.push_back("@protocol");
+	directive.push_back("@optional");
+	directive.push_back("@required");
+	directive.push_back("@end");
+	directive.push_back("@encode");
+	directive.push_back("@throw");
+	directive.push_back("@property");
+	directive.push_back("@synthesize");
+
+
 
 	data_name_list.push_back("asm");
 	data_name_list.push_back("auto");
@@ -105,6 +103,8 @@ CCCounter::CCCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	data_name_list.push_back("void");
 	data_name_list.push_back("volatile");
 	data_name_list.push_back("wchar_t");
+	data_name_list.push_back("id");
+	data_name_list.push_back("BOOL");
 
 	exec_name_list.push_back("break");
 	exec_name_list.push_back("case");
@@ -137,6 +137,8 @@ CCCounter::CCCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	exec_name_list.push_back("try");
 	exec_name_list.push_back("typeid");
 	exec_name_list.push_back("while");
+	exec_name_list.push_back("print");
+	exec_name_list.push_back("finally");
 
 	math_func_list.push_back("abs");
 	math_func_list.push_back("cbrt");
@@ -218,14 +220,13 @@ CCCounter::CCCounter( string lang ) : CCJavaCsScalaCounter( lang )
 
 	cmplx_pointer_list.push_back("->");
 
-/* Below Set in CCJavaCsScalaCounter
+/* Below Set in CCJavaCsScalaCounter base class
 	cmplx_cyclomatic_list.push_back("if");
 	cmplx_cyclomatic_list.push_back("case");
 	cmplx_cyclomatic_list.push_back("while");
 	cmplx_cyclomatic_list.push_back("for");
 	cmplx_cyclomatic_list.push_back("catch");
 	cmplx_cyclomatic_list.push_back("?");
-
 
 	cmplx_cyclomatic_logic_list.push_back("||");
 	cmplx_cyclomatic_logic_list.push_back("&&");
@@ -234,10 +235,6 @@ CCCounter::CCCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	cmplx_cyclomatic_case_list.push_back("case");
 	cmplx_cyclomatic_switch_list.push_back("switch");
 */
-
 	skip_cmplx_cyclomatic_file_extension_list.push_back(".h");
-	skip_cmplx_cyclomatic_file_extension_list.push_back(".hh");
-	skip_cmplx_cyclomatic_file_extension_list.push_back(".hpp");
-	//skip_cmplx_cyclomatic_file_extension_list.push_back(".hxx");	// Legacy C++  Enable if you want
-	skip_cmplx_cyclomatic_file_extension_list.push_back(".inc");
 }
+

@@ -15,8 +15,11 @@ CMakefileCounter::CMakefileCounter()
 	classtype = MAKEFILE;
 	language_name = "Makefile";
 
-	file_extension.push_back(".make");
-	file_extension.push_back(".makefile");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Makefile", file_extension);
+    
+	//file_extension.push_back(".make");
+	//file_extension.push_back(".makefile");
 
 	QuoteStart = "\"'";
 	QuoteEnd = "\"'";

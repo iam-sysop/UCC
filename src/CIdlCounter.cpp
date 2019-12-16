@@ -14,9 +14,11 @@ CIdlCounter::CIdlCounter()
     classtype = IDL;
     language_name = "IDL";
     casesensitive = false;
-
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("IDL", file_extension);
+    /*
     file_extension.push_back(".pro");
-    file_extension.push_back(".sav");
+    file_extension.push_back(".sav");*/
 
     QuoteStart = "\"'";
     QuoteEnd = "\"'";

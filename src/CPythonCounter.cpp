@@ -15,8 +15,10 @@ CPythonCounter::CPythonCounter()
 {
 	classtype = PYTHON;
 	language_name = "Python";
-
-	file_extension.push_back(".py");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Python", file_extension);
+	//file_extension.push_back(".py");
 
 	BlockCommentStart.push_back("\"\"\"");
 	BlockCommentEnd.push_back("\"\"\"");

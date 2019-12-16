@@ -6,6 +6,7 @@
 */
 
 #include "CMatlabCounter.h"
+#include <stdio.h>
 
 /*!
 * Constructs a CMatlab object.
@@ -15,7 +16,9 @@ CMatlabCounter::CMatlabCounter()
 	classtype = MATLAB;
 	language_name = "MATLAB";
 
-	file_extension.push_back(".m");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("MATLAB", file_extension);
+	//file_extension.push_back(".m");
 
 	QuoteStart = "'";
 	QuoteEnd = "'";
@@ -447,6 +450,10 @@ void CMatlabCounter::LSLOC(results* result, string line, size_t lineNumber, stri
 *
 * \return 1 if function name is found
 */
+
+/* Modification: 2016.10
+*   Fixed crash problem when multiple 'end' in one line crashed */
+
 int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 	filemap &functionStack, string &functionName, unsigned int &functionCount)
 {
@@ -480,7 +487,7 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			//---------------------------------------------
 					// handle on multiple keywords in one line
 					string str1 = "function";
-					tempLine.replace(tempLine.find(str1),str1.length(),"");
+					tempLine.replace(CUtil::FindKeyword(tempLine, str1), str1.length(),""); // Modification: 2016_10
 					finishFlag = false; 
 		}
 
@@ -492,7 +499,7 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			//---------------------------------------------
 					// handle on multiple keywords in one line
 					string str1 = "if";
-					tempLine.replace(tempLine.find(str1),str1.length(),"");
+					tempLine.replace(CUtil::FindKeyword(tempLine, str1), str1.length(),""); // Modification: 2016_10
 					finishFlag = false; 
 		}
 		if ( CUtil::FindKeyword(tempLine, "for") != string::npos) {
@@ -501,7 +508,7 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			//---------------------------------------------
 					// handle on multiple keywords in one line
 					string str1 = "for";
-					tempLine.replace(tempLine.find(str1),str1.length(),"");
+					tempLine.replace(CUtil::FindKeyword(tempLine, str1), str1.length(),""); // Modification: 2016_10
 					finishFlag = false; 
 		}
 		if ( CUtil::FindKeyword(tempLine, "switch") != string::npos) {
@@ -510,7 +517,7 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			//---------------------------------------------
 					// handle on multiple keywords in one line
 					string str1 = "switch";
-					tempLine.replace(tempLine.find(str1),str1.length(),"");
+					tempLine.replace(CUtil::FindKeyword(tempLine, str1), str1.length(),""); // Modification: 2016_10
 					finishFlag = false; 
 		}
 		if ( CUtil::FindKeyword(tempLine, "try") != string::npos) {
@@ -519,7 +526,7 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			//---------------------------------------------
 					// handle on multiple keywords in one line
 					string str1 = "try";
-					tempLine.replace(tempLine.find(str1),str1.length(),"");
+					tempLine.replace(CUtil::FindKeyword(tempLine, str1), str1.length(),""); // Modification: 2016_10
 					finishFlag = false; 
 		}
 		if ( CUtil::FindKeyword(tempLine, "while") != string::npos) {
@@ -528,7 +535,7 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			//---------------------------------------------
 					// handle on multiple keywords in one line
 					string str1 = "while";
-					tempLine.replace(tempLine.find(str1),str1.length(),"");
+					tempLine.replace(CUtil::FindKeyword(tempLine, str1), str1.length(),""); // Modification: 2016_10
 					finishFlag = false; 
 		}
 		if ( CUtil::FindKeyword(tempLine, "parfor") != string::npos) {
@@ -537,7 +544,8 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			//---------------------------------------------
 					// handle on multiple keywords in one line
 					string str1 = "parfor";
-					tempLine.replace(tempLine.find(str1),str1.length(),"");
+					tempLine.replace(CUtil::FindKeyword(tempLine, str1), str1.length(),""); // Modification: 2016_10
+
 					finishFlag = false; 
 		}
 
@@ -548,16 +556,14 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 			//---------------------------------------------
 			// handle on multiple keywords in one line
 			string str1 = "end";
-			tempLine.replace(tempLine.find(str1),str1.length(),"");
+			tempLine.replace(CUtil::FindKeyword(tempLine, str1),str1.length(),""); // Modification: 2016_10
 			finishFlag = false; 
 
-
 			// the end is for array indexing Arr3(5:end)   will get [5 6 7 8]
-			if (CUtil::FindKeyword(tempLine, "(") != string::npos && CUtil::FindKeyword(tempLine, ")") != string::npos){
-				// do nothing
+			if (CUtil::FindKeyword(tempLine, "(") != string::npos && CUtil::FindKeyword(tempLine, ")") != string::npos) {
+				// do thing
 			}
 			else {
-				// the end is for the while/if/for,etc
 				str = functionStack.back().line; // get the latest element added to the str 
 				fcnt = functionStack.back().lineNumber;
 				idx = str.find("end");
@@ -565,7 +571,6 @@ int CMatlabCounter::ParseFunctionName(const string &line, string &/*lastline*/,
 					functionStack.pop_back(); // take that end(not end of function) out
 				}
 				else {
-					// the end is the end of function
 					functionName = CUtil::ClearRedundantSpaces(str);
 					functionCount = fcnt;
 					functionStack.pop_back();

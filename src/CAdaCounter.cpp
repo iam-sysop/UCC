@@ -16,10 +16,14 @@ CAdaCounter::CAdaCounter()
 	language_name = "Ada";
 	casesensitive = false;
 
+    //Modification: 11.2016 Ext-4 starts
+    file_extension = CUtil::getExtensionsToLanguage("Ada", file_extension);
+    /*
 	file_extension.push_back(".ada");
 	file_extension.push_back(".a");
 	file_extension.push_back(".adb");
-	file_extension.push_back(".ads");
+	file_extension.push_back(".ads");*/
+    //Modification: 11.2016 Ext-4
 
 	LineCommentStart.push_back("--");
 

@@ -16,13 +16,15 @@ CVerilogCounter::CVerilogCounter()
 	classtype = VERILOG;
 	language_name = "Verilog";
     
-	file_extension.push_back(".v");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Verilog", file_extension);
+	/*file_extension.push_back(".v");
 	file_extension.push_back(".sv");
 	file_extension.push_back(".svi");
 	file_extension.push_back(".vlib");
 	file_extension.push_back(".svlib");
 	file_extension.push_back(".vh");
-	file_extension.push_back(".svh");
+	file_extension.push_back(".svh");*/
     
 	LineCommentStart.push_back("//");
 	BlockCommentStart.push_back("/*");

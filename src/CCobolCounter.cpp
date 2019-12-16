@@ -27,9 +27,12 @@ CCobolCounter::CCobolCounter()
     classtype = COBOL;
     language_name = "COBOL";
 
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("COBOL", file_extension);
+    /*
     file_extension.push_back(".cbl");
     file_extension.push_back(".cob");
-	file_extension.push_back(".cpy");
+	file_extension.push_back(".cpy");*/
 
     QuoteStart = "\"'";
     QuoteEnd = "\"'";
@@ -636,9 +639,7 @@ int CCobolCounter::LanguageSpecificProcess(filemap* fmap, results* result, filem
             }
             if (new_loop)
             {
-                // Modification: Spring 2016 - To fix warning 'comparision between signed
-                // and unsigned integer'.
-                if ((int)result->cmplx_nestloop_count.size() < (int)loopEnd.size())
+                if ( result->cmplx_nestloop_count.size() < loopEnd.size() )
                     result->cmplx_nestloop_count.push_back(1);
                 else
                     result->cmplx_nestloop_count[loopEnd.size()-1]++;
@@ -845,7 +846,7 @@ int CCobolCounter::CountComplexity( filemap* fmap, results* result )
 {
 	filemap::iterator fit;
 	unsigned int cnt, cyclomatic_cnt = 0, cyclomatic_logic_cnt = 0, ignore_cyclomatic_cnt = 0;
-	// int tmpc; // Modification - Spring 2016 - tmpc not used anywhere here
+	//int tmpc;
 	string line;
 	string exclude = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_$";
 	bool line_skipped = false;
@@ -911,7 +912,7 @@ int CCobolCounter::CountComplexity( filemap* fmap, results* result )
 		CUtil::CountTally(line, cmplx_cond_list, cnt, 1, exclude, "", "", &result->cmplx_cond_count, casesensitive);
 		result->cmplx_cond_lines += cnt;
 
-		//tmpc = (int)CUtil::FindKeyword( line, "END-IF" ); // Modification - Spring 2016 - tmpc not used
+		//tmpc = (int)CUtil::FindKeyword( line, "END-IF" );
 		//result->cmplx_cond_lines = 0;
 		
 

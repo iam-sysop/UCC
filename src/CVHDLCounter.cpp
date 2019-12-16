@@ -15,9 +15,11 @@ CVHDLCounter::CVHDLCounter()
 {
 	classtype = VHDL;
 	language_name = "VHDL";
-
-	file_extension.push_back(".vhd");
-	file_extension.push_back(".vhdl");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("VHDL", file_extension);
+	/*file_extension.push_back(".vhd");
+	file_extension.push_back(".vhdl");*/
 
 	LineCommentStart.push_back("--");
 	QuoteStart = "\"";

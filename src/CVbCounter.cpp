@@ -16,12 +16,15 @@ CVbCounter::CVbCounter()
 {
 	classtype = VB;
 	language_name = "Visual_Basic";
-
-	file_extension.push_back(".vb");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Visual_Basic", file_extension);
+    
+	/*file_extension.push_back(".vb");
 	file_extension.push_back(".frm");
 	file_extension.push_back(".mod");
 	file_extension.push_back(".cls");
-	file_extension.push_back(".bas");
+	file_extension.push_back(".bas");*/
 
 	QuoteStart = "\x93";
 	

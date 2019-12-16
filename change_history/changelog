@@ -35,5 +35,20 @@ v2015.12.2      second github.com commit:
 
 
 ----
+v2017.1         third github.com commit:
+
+                GUI BUILD REQUIRES QT 5.7.0 AND
+                CORRESPONDING QT CREATOR
+
+                MS VISUAL STUDIO 2010 AND 2015
+                PROJECT AND SOLUTION FILES ADDED
+
+                Multiple code changes/cleanups
+                observed this commit
+
+                Several Languages Added 
+
+
+----
 
 

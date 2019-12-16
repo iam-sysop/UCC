@@ -1,0 +1,60 @@
+RELEASE NOTES:
+--------------
+
+-------------------------------------------------
+v2017.1
+-------------------------------------------------
+New Features
+
+    Objective C parser
+    Cyclomatic complexity support for Midas 
+    	languages
+    Option to specify non-default comment 
+    	delimiters
+    Allow file filters in a file, as an 
+    	alternative to the current filespecs 
+    	option
+    Customization of report headers
+    Visual differencing only includes modified files
+
+ 
+Note for GUI users: The modification of extensions
+does not currently work for the GUI 
+
+
+
+
+-------------------------------------------------
+v2015.12 and v2015.12.2
+-------------------------------------------------
+With the help of this release's major 
+contributor, Randy Maxwell, UCC now has 
+multi-threading capability! This version of UCC 
+also has some impressive performance improvements 
+with respect to RAM consumption and run time.
+
+Additional new features include:
+
+    Cyclomatic Complexity Ring 4 results for 
+      	C++, Java, C#, and Scala
+
+    New Language Support
+        Assembly (NASM, MASM, GAS, MIPS, PowerPC)
+        COBOL
+        IDL
+        P/L SQL
+        Scala
+
+Details on additional features and bug fixes are 
+in the Release Notes.
+
+Note on COBOL parser: This is a very preliminary 
+version of the parser. Since we did not get 
+direct user feedback, we want to get feedback 
+in the form of bugs and defects to finally 
+support COBOL for you!
+
+Note for GUI: Using the GUI requires for you to 
+have a blank fileList.txt in the location the GUI
+Executable is created after building in Qt for
+successful execution.

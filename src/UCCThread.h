@@ -36,7 +36,7 @@
     #define		ENABLE_THREADS
 #else
 	// Available if Boost thread library installed, compiled, .h included and linked.
-//	#define		ENABLE_THREADS
+	//#define		ENABLE_THREADS
 #endif
 
 // OK even if not compiled with thread support
@@ -202,6 +202,8 @@ void CombineThreadResults();
 	unsigned int NumThreadsBusy( unsigned long & count_done, 
 							const unsigned int	sleep_milliseconds = 100, 
 							const bool			combine_results_from_threads = true );
+    // 2016   Return the path/file being parsed by a Thread		
+	void GetThreadParseFile( const unsigned int threadIdx, string & path_file );
 #endif
 
 // Allow reading physical file lines now when other file info was found before.

@@ -14,8 +14,10 @@ CXMidasCounter::CXMidasCounter()
 {
 	classtype = XMIDAS;
 	language_name = "X-Midas";
-
-	file_extension.push_back(".txt");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("X-Midas", file_extension);
+	//file_extension.push_back(".txt");
 
 	data_name_list.push_back("local");
 

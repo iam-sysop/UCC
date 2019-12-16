@@ -28,8 +28,11 @@
 // Enable checking various C++ Exception conditions
 // Set up this define for your OS and perhaps compiler and linker?
 // Windows and Mac can compile but not Linux.  Perhaps another library needed?
-#ifdef	WIN32
+#if (defined(_WIN32) && !defined(__MINGW32__))
 	#define		ENABLE_EXCEPTION_CLAUSES
+	#if (_MSC_VER >= 1600)		// Visual Studio 2010 or higher (or equivalent)
+		#define		CLAUSE_SYSTEM_ERROR_OK
+	#endif
 #endif
 
 #ifdef DARWIN		// MacIntosh OSX
@@ -79,9 +82,7 @@ int main(int argc, char *argv[])
 	printf( "Here is where you can attach a Debugger." );
 	printf( "\nHit Enter key to continue running in UCC main()\n" );
 
-    /* Modification: 2016.02; USC
-     *   Fixed VS2015 compilation errors */
-	char * pChar = gets_s( keyBuffer );
+	char * pChar = gets( keyBuffer );
 #endif
 
 	// Now that UCC is running without any User input 
@@ -188,12 +189,14 @@ int main(int argc, char *argv[])
 		retVal = EXCEPTION_RANGE_ERROR;
 		exception_msg = e.what();
 	}
+#ifdef	CLAUSE_SYSTEM_ERROR_OK
 	catch(const std::system_error& e)
 	{
 		// this executes if above throws std::system_error
 		retVal = EXCEPTION_SYSTEM_ERROR;
 		exception_msg = e.what();
 	}
+#endif
 	catch(const std::runtime_error& e) 
 	{
 		// this executes if above throws std::runtime_error (base class rule)
@@ -248,7 +251,7 @@ int main(int argc, char *argv[])
 			FirstExceptionMessage( EXCEPTION_HANDLER_APP, MAIN_THREAD_INDEX, (unsigned int)retVal, exception_msg );
 		}
 	}
-#endif //ENABLE_EXCEPTION_CLAUSES
+#endif		// ENABLE_EXCEPTION_CLAUSES
 	catch(...) 
 	{
 		// this executes if above throws std::string or int or any other unrelated type
@@ -370,9 +373,7 @@ int main(int argc, char *argv[])
 
 	char keyBuffer2[256];
 
-    /* Modification: 2016.02; USC
-     *   Fixed VS2015 compilation errors */
-	pChar = gets_s( keyBuffer2 );
+	pChar = gets( keyBuffer2 );
 #endif
 
 	return retVal;

@@ -17,13 +17,17 @@ CFortranCounter::CFortranCounter()
 	language_name = "Fortran";
 	casesensitive = false;
 
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Fortran", file_extension);
+    
+    /*
 	file_extension.push_back(".f");
 	file_extension.push_back(".for");
 	file_extension.push_back(".f77");
 	file_extension.push_back(".f90");
 	file_extension.push_back(".f95");
 	file_extension.push_back(".f03");
-	file_extension.push_back(".hpf");
+	file_extension.push_back(".hpf");*/
 
 	QuoteStart = "\"'";
 	QuoteEnd = "\"'";

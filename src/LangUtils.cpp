@@ -156,6 +156,9 @@ int Init_CounterForEachLanguage( CounterForEachLangType & CounterForEachLanguage
     tmp = new CXMidasCounter;   // Modifacation: 2011.05
     CounterForEachLanguage.insert(map<int, CCodeCounter*>::value_type(XMIDAS, tmp));
 
+    tmp = new CObjCCounter;   // Modifacation: 2016.07
+	CounterForEachLanguage.insert(map<int, CCodeCounter*>::value_type(OBJC, tmp));
+
     tmp = new CPascalCounter;   // Modifacation: 2011.10
     CounterForEachLanguage.insert(map<int, CCodeCounter*>::value_type(PASCAL, tmp));
 

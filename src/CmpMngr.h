@@ -40,7 +40,7 @@ class CmpMngr
 public:
     CmpMngr();
     CmpMngr(ofstream *file_stream);
-	void Compare(srcLineVector* baseFileMap, srcLineVector* compFileMap, const double match_threshold);
+	string Compare(srcLineVector* baseFileMap, srcLineVector* compFileMap, const double match_threshold);
 
 	unsigned int nAddedLines;		//!< Number of lines added
 	unsigned int nDeletedLines;		//!< Number of lines deleted
@@ -64,7 +64,7 @@ private:
 
 	void fill_source_code_vec(const srcLineVector *file_map, vector<string> &source_code_vec);
 
-	void print_info( ofstream *file_dump_stream = NULL, string * diff_details_str = NULL ) const;
+	string print_info(string * diff_details_str = NULL ) const;
 };
 
 //! List of strings.

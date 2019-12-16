@@ -15,7 +15,10 @@ CJavaCounter::CJavaCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	classtype = JAVA;
 	language_name = "Java";
 
-	file_extension.push_back(".java");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Java", file_extension);
+    
+	//file_extension.push_back(".java");
 
 	directive.push_back("import");
 	directive.push_back("package");

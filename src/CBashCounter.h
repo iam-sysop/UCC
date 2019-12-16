@@ -25,6 +25,11 @@ public:
 protected:
 	virtual int PreCountProcess(filemap* fmap);
 	virtual int LanguageSpecificProcess(filemap* fmap, results* result, filemap* fmapBak = NULL);
+    //Added by Rujun Ma for BashCounter fix. 11.27.16
+    virtual int ReplaceQuote(string &strline, size_t &idx_start, bool &contd, string &CurrentQuoteEnd);	
+	virtual int CountCommentsSLOC(filemap* fmap, results* result, filemap* fmapBak = NULL);		
+	virtual int CountDirectiveSLOC(filemap* fmap, results* result, filemap* fmapBak = NULL);
+    
 	void LSLOC(results* result, string line, size_t lineNumber, string lineBak, string &strLSLOC, 
 		string &strLSLOCBak, bool &data_continue, unsigned int &temp_lines, unsigned int &phys_exec_lines,
 		unsigned int &phys_data_lines, StringVector &loopLevel);

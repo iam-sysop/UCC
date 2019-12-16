@@ -15,8 +15,10 @@ CPerlCounter::CPerlCounter()
 	classtype = PERL;
 	language_name = "Perl";
 
-	file_extension.push_back(".pl");
-	file_extension.push_back(".pm");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Perl", file_extension);
+	//file_extension.push_back(".pl");
+	//file_extension.push_back(".pm");
 
 	LineCommentStart.push_back("#");
 

@@ -739,6 +739,13 @@
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="txtExtensionFile">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0">
          <widget class="QLabel" name="lblOutputDir">
           <property name="toolTip">
@@ -779,13 +786,6 @@
           </property>
           <property name="text">
            <string>Extension File</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="txtExtensionFile">
-          <property name="enabled">
-           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -862,6 +862,56 @@
         <string>No Uncounted File Message</string>
        </property>
       </widget>
+      <widget class="QGroupBox" name="gbxHeader">
+       <property name="geometry">
+        <rect>
+         <x>460</x>
+         <y>190</y>
+         <width>671</width>
+         <height>81</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Custom Header</string>
+       </property>
+       <widget class="QCheckBox" name="cbxNoHeader">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>161</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>No Header</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnCustomHeader">
+        <property name="geometry">
+         <rect>
+          <x>540</x>
+          <y>32</y>
+          <width>121</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Add Header File</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txtHeader">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>40</y>
+          <width>521</width>
+          <height>20</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+      <zorder>gbxHeader</zorder>
       <zorder>chkDupThreshold</zorder>
       <zorder>chkDifferencing</zorder>
       <zorder>chkModThreshold</zorder>
@@ -879,8 +929,8 @@
       <zorder>layoutWidget</zorder>
       <zorder>chkProcLinks</zorder>
       <zorder>chkClearCaseFiles</zorder>
-      <zorder>chkClearCaseFiles</zorder>
       <zorder>chkUncounted</zorder>
+      <zorder></zorder>
      </widget>
     </item>
     <item>

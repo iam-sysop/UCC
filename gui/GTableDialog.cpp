@@ -69,7 +69,30 @@ void GTableDialog::on_cboResultsSelect_currentIndexChanged(const QString &fileNa
 			{
 				i++;
 				ui.tblResults->insertRow(i);
-				QStringList s = line.split(',');
+                QStringList s;
+
+                /*
+                 * In some cases, we want to display quotes or commas in CSV file.
+                 * To do that, we need to quote the whole line.
+                 * In this if condition, we parse this kind of text and display it in one column
+                */
+                if (line.at(0) == QChar('"') && line.endsWith(QChar('"')))
+                {
+                    line = line.mid(1, line.size() - 2);
+                    QString temp = "";
+                    for (int it1 = 0; it1 < line.size(); it1++)
+                    {
+                        temp.append(line.at(it1));
+                        /*
+                         * The quote character we want to display in CSV has been replace with two quote characters ("")
+                         * So here we need to skip one quote character
+                        */
+                        if (line.at(it1) == QChar('"') && it1 + 1 < line.size() && line.at(it1 + 1) == QChar('"'))
+                            it1++;
+                    }
+                    s.append(temp);
+                }
+                else s = line.split(',');
 				if (s.count() > ui.tblResults->columnCount())
 					ui.tblResults->setColumnCount(s.count());
 				for (j = 0; j < s.count(); j++)

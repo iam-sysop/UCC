@@ -38,7 +38,11 @@ CScalaCounter::CScalaCounter( string lang ) : CCJavaCsScalaCounter( lang )
 	language_name = "Scala";
 	language_version = "2.11.5";
 	language_version_authority = "scala.org";	// creator of this version
-	file_extension.push_back(".scala");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Scala", file_extension);
+    
+	//file_extension.push_back(".scala");
 
 // INVARIANT ! ! !   NO  DUPLICATE  STRINGS
 //

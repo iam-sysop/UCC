@@ -14,8 +14,10 @@ CCssCounter::CCssCounter()
 {
 	classtype = CSS;
 	language_name = "CSS";
-
-	file_extension.push_back(".css");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("CSS", file_extension);
+    /*
+	file_extension.push_back(".css");*/
 
 	BlockCommentStart.push_back("/*");
 	BlockCommentEnd.push_back("*/");

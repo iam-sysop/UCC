@@ -27,6 +27,8 @@ protected:
 	void LSLOC(results* result, string line, size_t lineNumber, string lineBak, string &strLSLOC, string &strLSLOCBak,
 		bool &data_continue, unsigned int &temp_lines, unsigned int &phys_exec_lines,
 		unsigned int &phys_data_lines, StringVector &loopEnd);
+	//Modification 2016.10; USC
+	int CountComplexity(filemap* fmap, results* result);
 
 private:
 // This class is NOT copied or assigned to.

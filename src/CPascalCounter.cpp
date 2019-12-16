@@ -25,12 +25,15 @@ CPascalCounter::CPascalCounter()
 	BlockCommentEnd.push_back("}");
 	LineCommentStart.push_back("//");
 
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Pascal", file_extension);
+    /*
 	file_extension.push_back(".pas");
 	file_extension.push_back(".p");
 	file_extension.push_back(".pp");
 	file_extension.push_back(".pa3");
 	file_extension.push_back(".pa4");
-	file_extension.push_back(".pa5");
+	file_extension.push_back(".pa5");*/
 
 	data_name_list.push_back("ansistring");
 	data_name_list.push_back("array");

@@ -10,6 +10,11 @@
 #include <vector>
 #include <list>
 #include <iterator>
+#include <map>
+#include <string>
+#include <sstream>
+#include <cstdlib>
+#include <cstring>
 
 /*!
 * Constructs a CSqlCounter object.
@@ -19,8 +24,11 @@ CSqlCounter::CSqlCounter()
     classtype = SQL;
     language_name = "SQL";
     casesensitive = false;
-
-    file_extension.push_back(".sql");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("SQL", file_extension);
+    //file_extension.push_back(".sql");
+    
     QuoteStart = "\"'";
     QuoteEnd = "\"'";
     LineCommentStart.push_back("--");
@@ -657,6 +665,44 @@ void CSqlCounter::LSLOC(results* result, string line, size_t lineNumber, string 
     bool trunc_flag = false, found;
     string exec_keyword, data_keyword, cmplx_assign_keyword;
     list<size_t> slocIndices, eslocIndices, dslocIndices, gslocIndices;
+	
+	/* Modification Fall 2016
+		1> PreProcess the line 
+		2> Handles the case where "var1:=1" is modified to "var1 := 1"
+		3> The change is required so that LSLOC Count is as per UCC documentation 
+	*/
+	char *cs = (char *)malloc(sizeof(char *) * (line.length() + 1));
+	memset(cs, 0, sizeof(char *) * (line.length() + 1));
+    for (i=0;i<line.length();i++) {
+        cs[i] = line[i];
+    }
+    int len = strlen(cs);
+    std::stringstream ss;
+    std::map<size_t, std::string> cmplx_assign_positions;
+    for(std::vector<std::string>::iterator it = cmplx_assign_list.begin(); it != cmplx_assign_list.end(); it ++) {
+        i = 0;	
+        while ((i=line.find(*it, i)) != std::string::npos) {
+            memset(&cs[i], 0, (*it).length());
+            cmplx_assign_positions[i] = *it;
+            i += (*it).length();
+        }
+    }
+    i = 0;
+    while (i < len) {
+        if (cs[i] != 0) {
+            ss << &cs[i];
+            i += strlen(&cs[i]);
+        } else {
+            if (cmplx_assign_positions.find(i) != cmplx_assign_positions.end()) 
+                ss << " "<< cmplx_assign_positions[i] <<" ";
+            i++;
+        }
+    }
+    free(cs);
+	line = ss.str();
+	/*
+		Modification Fall 2016 Ends
+	*/
 
     // find locations of executable keywords
     for (i = 0; i < exec_name_list.size(); i++)

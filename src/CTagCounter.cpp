@@ -172,8 +172,16 @@ void CTagCounter::LSLOC(results* result, string line, size_t lineNumber, string 
 	{
 		if (line[i] == '<')
 		{
-			if (line.length() - 1 > i && (line[i+1] == '/' || line[i+1] == '?' || line[i+1] == '!'))
-			{
+			/*
+			 * Modification Fall 2016
+			 * Line below changed from: if (line.length() - 1 > i && (line[i+1] == '/' || line[i+1] == '?' || line[i+1] == '!'))
+                         * to: if (line.length() - 1 > i && (line[i+1] == '/' ))  --> removed condition for ? and !
+         	 	 * in order to count multiple lines beginning with <! or <? as separate SLOCS. 
+			 * 	Reason for having ? or ! were not known.
+			 * 	Tested Huge Collections of OpenSource HTML and XML files for SLOC counts before making this change
+			 */
+			if (line.length() - 1 > i && (line[i+1] == '/' )) 
+            {
 				i++;
 				continue;
 			}

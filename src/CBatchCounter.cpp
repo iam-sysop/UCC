@@ -20,7 +20,9 @@ CBatchCounter::CBatchCounter ()
 	classtype = BATCH;
 	language_name = "DOS_Batch";
     
-	file_extension.push_back(".bat");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("DOS_Batch", file_extension);
+	//file_extension.push_back(".bat");
 
 	QuoteStart = "\"'";
 	QuoteEnd = "\"'";

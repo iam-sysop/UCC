@@ -16,9 +16,13 @@ CVbscriptCounter::CVbscriptCounter()
 {
 	classtype = VBSCRIPT;
 	language_name = "VBScript";
-
-	file_extension.clear();
-	file_extension.push_back(".vbs");
+    
+    file_extension.clear();
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("VBScript", file_extension);
+    /*
+	file_extension.push_back(".vbs");*/
 }
 
 /*!

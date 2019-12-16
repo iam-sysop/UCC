@@ -14,8 +14,10 @@ CXmlCounter::CXmlCounter()
 {
 	classtype = XML;
 	language_name = "XML";
-
-	file_extension.push_back(".*xml");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("XML", file_extension);
+	//file_extension.push_back(".*xml");
 
 	BlockCommentStart.push_back("<!--");
 	BlockCommentEnd.push_back("-->");

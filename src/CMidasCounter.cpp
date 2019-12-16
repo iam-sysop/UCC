@@ -95,6 +95,18 @@ CMidasCounter::CMidasCounter()
 	cmplx_preproc_list.push_back("include");
 
 	cmplx_assign_list.push_back("results");
+
+    //Modification 2016.10; USC
+    cmplx_cyclomatic_list.push_back("if");
+    cmplx_cyclomatic_list.push_back("elseif");
+    cmplx_cyclomatic_list.push_back("forall");
+    cmplx_cyclomatic_list.push_back("loop");
+    cmplx_cyclomatic_list.push_back("trap");
+    cmplx_cyclomatic_list.push_back("while");
+
+    cmplx_cyclomatic_logic_list.push_back("and");
+    cmplx_cyclomatic_logic_list.push_back("or");
+
 }
 
 /*!
@@ -460,4 +472,157 @@ void CMidasCounter::LSLOC(results* result, string line, size_t lineNumber, strin
 		temp_lines = 0;
 		strLSLOC = strLSLOCBak = "";
 	}
+}
+
+/**
+ * Counts file language complexity based on specified language keywords/characters.
+ *
+ * @param fmap list of processed file lines
+ * @param result counter results
+ *
+ * @return method status
+ *
+ * Creation Time and Owner : 2016.10; USC
+ */
+int CMidasCounter::CountComplexity(filemap* fmap, results* result)
+{
+    if (classtype == UNKNOWN || classtype == DATAFILE)
+        return 0;
+    filemap::iterator fit;
+    size_t idx;
+    unsigned int cnt, proc_cnt=0, cyclomatic_cnt = 0, ignore_cyclomatic_cnt = 0, cyclomatic_logic_cnt = 0, procedure_count = 0;
+    string line, file_ext, procedure_name ="";
+    string exclude = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_$";
+
+    map<unsigned int, lineElement> procedure_map;
+    map<unsigned int, lineElement> logical_map;
+
+    filemap procedureStack;
+
+    bool process_cyclomatic_complexity = false;
+
+    // check whether to process cyclomatic complexity
+    if (cmplx_cyclomatic_list.size() > 0)
+    {
+        process_cyclomatic_complexity = true;
+        if (skip_cmplx_cyclomatic_file_extension_list.size() > 0)
+        {
+            idx = result->file_name.find_last_of(".");
+            if (idx != string::npos)
+            {
+                file_ext = result->file_name.substr(idx);
+                file_ext = CUtil::ToLower(file_ext);
+                if (find(skip_cmplx_cyclomatic_file_extension_list.begin(), skip_cmplx_cyclomatic_file_extension_list.end(), file_ext) != skip_cmplx_cyclomatic_file_extension_list.end())
+                    process_cyclomatic_complexity = false;
+            }
+        }
+    }
+
+    // process each line
+    for (fit = fmap->begin(); fit != fmap->end(); fit++)
+    {
+        line = fit->line;
+
+        if (CUtil::CheckBlank(line))
+            continue;
+
+        line = " " + line;
+
+        // mathematical functions
+        cnt = 0;
+        CUtil::CountTally(line, math_func_list, cnt, 1, exclude, "", "", &result->math_func_count, casesensitive);
+        result->cmplx_math_lines += cnt;
+
+        // trigonometric functions
+        cnt = 0;
+        CUtil::CountTally(line, trig_func_list, cnt, 1, exclude, "", "", &result->trig_func_count, casesensitive);
+        result->cmplx_trig_lines += cnt;
+
+        // logarithmic functions
+        cnt = 0;
+        CUtil::CountTally(line, log_func_list, cnt, 1, exclude, "", "", &result->log_func_count, casesensitive);
+        result->cmplx_logarithm_lines += cnt;
+
+        // calculations
+        cnt = 0;
+        CUtil::CountTally(line, cmplx_calc_list, cnt, 1, exclude, "", "", &result->cmplx_calc_count, casesensitive);
+        result->cmplx_calc_lines += cnt;
+
+        // conditionals
+        cnt = 0;
+        CUtil::CountTally(line, cmplx_cond_list, cnt, 1, exclude, "", "", &result->cmplx_cond_count, casesensitive);
+        result->cmplx_cond_lines += cnt;
+
+        // logical operators
+        cnt = 0;
+        CUtil::CountTally(line, cmplx_logic_list, cnt, 1, exclude, "", "", &result->cmplx_logic_count, casesensitive);
+        result->cmplx_logic_lines += cnt;
+
+        // preprocessor directives
+        cnt = 0;
+        CUtil::CountTally(line, cmplx_preproc_list, cnt, 1, exclude, "", "", &result->cmplx_preproc_count,
+                          casesensitive);
+        result->cmplx_preproc_lines += cnt;
+
+        // assignments
+        cnt = 0;
+        CUtil::CountTally(line, cmplx_assign_list, cnt, 1, exclude, "", "", &result->cmplx_assign_count, casesensitive);
+        result->cmplx_assign_lines += cnt;
+
+        /*
+        // pointers
+        cnt = 0;
+        // Pointers are embedded syntax so there is NO exclude string or include strings
+        CUtil::CountTally(line, cmplx_pointer_list, cnt, 1, "", "", "", &result->cmplx_pointer_count, casesensitive);
+        result->cmplx_pointer_lines += cnt;
+         */
+
+        if(process_cyclomatic_complexity) {
+            unsigned int temp = 0;
+            CUtil::CountTally(line, cmplx_cyclomatic_list, temp, 1, exclude, "", "", 0, casesensitive);
+            cyclomatic_cnt += temp;
+
+            if (ignore_cmplx_cyclomatic_list.size() > 0)
+                CUtil::CountTally(line, ignore_cmplx_cyclomatic_list, ignore_cyclomatic_cnt, 1, exclude, "", "", 0,
+                                  casesensitive);
+
+            // search for cyclomatic complexity logical keywords
+            if (cmplx_cyclomatic_logic_list.size() > 0)
+                CUtil::CountTally(line, cmplx_cyclomatic_logic_list, cyclomatic_logic_cnt, 1, exclude, "", "", 0,
+                                  casesensitive);
+
+            //search for startmacro
+            size_t idx_macro = CUtil::FindKeyword(line, "startmacro");
+            if (idx_macro != string::npos) {
+                lineElement element(++proc_cnt, "startmacro");
+                procedureStack.push_back(element);
+            }
+        }
+    }
+
+    while(!procedureStack.empty())
+    {
+        procedure_name = procedureStack.back().line;
+        procedure_count = procedureStack.back().lineNumber;
+        procedureStack.pop_back();
+
+        if(procedureStack.empty())
+        {
+            lineElement element(cyclomatic_cnt - ignore_cyclomatic_cnt + 1, procedure_name);
+            lineElement n_element(cyclomatic_cnt + cyclomatic_logic_cnt + 1, procedure_name);
+            procedure_map[procedure_count] = element;
+            logical_map[procedure_count] = n_element;
+        }
+
+    }
+
+    for (map<unsigned int, lineElement>::iterator it = procedure_map.begin(); it != procedure_map.end(); ++it)
+        result->cmplx_cycfunct_count.push_back(it->second);
+    if(cmplx_cyclomatic_logic_list.size() > 0)
+    {
+        for (map<unsigned int, lineElement>::iterator it = logical_map.begin(); it != logical_map.end(); ++it)
+            result->cmplx_cycfunct_CC2_count.push_back(it->second);
+    }
+    return 1;
+
 }

@@ -58,6 +58,7 @@ HEADERS += \
 	../src/CMidasCounter.h \
 	../src/CmpMngr.h \
 	../src/CNeXtMidasCounter.h \
+    ../src/CObjCCounter.h \
 	../src/CPascalCounter.h \
 	../src/CPerlCounter.h \
 	../src/CPhpCounter.h \
@@ -120,6 +121,7 @@ SOURCES += \
 	../src/CMidasCounter.cpp \
 	../src/CmpMngr.cpp \
 	../src/CNeXtMidasCounter.cpp \
+    ../src/CObjCCounter.cpp \
 	../src/CPascalCounter.cpp \
 	../src/CPerlCounter.cpp \
 	../src/CPhpCounter.cpp \

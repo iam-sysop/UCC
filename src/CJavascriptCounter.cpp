@@ -15,7 +15,10 @@ CJavascriptCounter::CJavascriptCounter()
 	classtype = JAVASCRIPT;
 	language_name = "JavaScript";
 
-	file_extension.push_back(".js");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("JavaScript", file_extension);
+    
+	//file_extension.push_back(".js");
 
 	QuoteStart = "\"'/";
 	QuoteEnd = "\"'/";

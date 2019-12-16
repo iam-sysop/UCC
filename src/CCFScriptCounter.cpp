@@ -16,7 +16,10 @@ CCFScriptCounter::CCFScriptCounter()
 	language_name = "CFScript";
 	casesensitive = false;
 
-	file_extension.push_back(".cfs");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("CFScript", file_extension);
+
+	//file_extension.push_back(".cfs");
 
 	QuoteStart = "\"'";
 	QuoteEnd = "\"'";

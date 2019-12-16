@@ -42,6 +42,7 @@
 #include "CMakefileCounter.h"
 #include "CMatlabCounter.h"
 #include "CNeXtMidasCounter.h"
+#include "CObjCCounter.h"           // Modified: 2016.07
 #include "CPascalCounter.h"
 #include "CPerlCounter.h"
 #include "CPhpCounter.h"

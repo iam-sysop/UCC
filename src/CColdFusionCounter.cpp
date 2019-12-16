@@ -14,8 +14,10 @@ CColdFusionCounter::CColdFusionCounter()
 {
 	classtype = COLDFUSION;
 	language_name = "ColdFusion";
-
-	file_extension.push_back(".*cfm");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("ColdFusion", file_extension);
+    /*
+	file_extension.push_back(".*cfm");*/
 
 	BlockCommentStart.push_back("<!---");
 	BlockCommentEnd.push_back("--->");

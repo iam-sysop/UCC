@@ -47,6 +47,10 @@ using namespace std;
 * Defines a vector containing a list of strings.
 */
 typedef vector<string> vectorString;
+/*Modification: 11.2016 Ext-4 Starts*/
+static std::map<std::string, std::vector<std::string> > dict;
+static std::map<std::string, std::vector<std::string> > dictCopy;
+/*Modification: 11.2016 Ext-4 End*/
 
 //
 // These are utilities that must NOT be inside the CUtil class
@@ -90,6 +94,11 @@ void	ShowTiming( string & time_str,
 class CUtil
 {
 public:
+    /*Modification: 11.2016 Ext-4 Starts*/
+    static void allocate();
+    static StringVector getExtensionsToLanguage(string lang, StringVector fileExtension);
+    /*Modification: 11.2016 Ext-4 ends*/
+
     static string TrimString(const string &str, int mode = 0);
     static string EraseString(const string &srcstr, const string &erasedstr);
 
@@ -119,8 +128,8 @@ public:
 
     static string ExtractFilename(const string &filepath);
     static string ExtractFilepath(const string &filepath);
-
-    // Helper used for smarter Estimates to help with RAM usage.
+    
+	// Helper used for smarter Estimates to help with RAM usage.
     static unsigned long long GetFileSizeInBytes( const string file );
 
 	// Build a List of Files; of given file Extension(s) starting from a Directory; maybe follow symbolic links.
@@ -134,7 +143,7 @@ public:
     static string ConvertClearCaseFile( const string &fileName, string & clearCaseTrailer );
     static size_t TruncateLine(size_t length, size_t totalLength, size_t truncate, bool &trunc_flag);
     static string ClearRedundantSpaces(const string &str);
-    static void ReplaceSmartQuotes(string &str);
+    static string ReplaceSmartQuotes(const string &str);
     static bool StartsWith(const string &str, const string &startsWith, bool case_sensitive = true);
     static bool EndsWith(const string &str, const string &endsWith, bool case_sensitive = true);
     static StringVector Split(const string &stringToSplit, const string &delimiter);
@@ -156,8 +165,6 @@ public:
 #endif
 
 #endif
-
 #ifdef _MSC_VER
 #define __func__ __FUNCTION__
 #endif
-

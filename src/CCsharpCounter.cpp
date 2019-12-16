@@ -17,7 +17,10 @@ CCsharpCounter::CCsharpCounter( string lang ) : CCJavaCsScalaCounter( lang )
 
 	isVerbatim = false;
 
-	file_extension.push_back(".cs");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("C#", file_extension);
+
+//	file_extension.push_back(".cs");
 
 	directive.push_back("#define");
 	directive.push_back("#else");

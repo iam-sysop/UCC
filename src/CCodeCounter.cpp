@@ -84,6 +84,8 @@ CCodeCounter::CCodeCounter()
 	ENTER_2( "" );
 	ENTER_3( "" );
 	ENTER_4( "" );
+    //Modification: 11.2016 Ext-4
+    CUtil::allocate();
 }
 
 /*!
@@ -387,13 +389,20 @@ ofstream* CCodeCounter::GetOutputStream(const string &outputFileNamePrePend, con
 *
 * 3.Creation Time and Owner:
 *   version  2009.01
+* 4. Modification : 2016.12
+*    Before closing the language output files, check if copyright footer needs to be printed
 */
 void CCodeCounter::CloseOutputStream()
 {
-	if (output_file.is_open())
+	if (output_file.is_open()) {
+		PrintFileFooter(output_file);    //Modification 2016.12
 		output_file.close();
-	if (output_file_csv.is_open())
+	}
+	if (output_file_csv.is_open()) {
+		PrintFileFooter(output_file_csv);  //Modification 2016.12
 		output_file_csv.close();
+	}
+		
 }
 
 /*!

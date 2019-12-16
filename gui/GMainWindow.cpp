@@ -18,6 +18,7 @@
 #include "GMainWindow.h"
 #include "GUtil.h"
 #include "GSideBySideDialog.h"
+#include "QFileInfo"
 
 #define MAX_ARGUMENTS 20
 #define ARGUMENT_LENGTH 1024
@@ -330,7 +331,7 @@ void GMainWindow::on_btnStart_clicked()
 	}
 
 	// add application name and output directory to arguments
-	argList.append(QApplication::applicationName());
+    argList.insert(begin(argList),QApplication::applicationName());
 	if (ui.txtOutputDir->text().isEmpty())
 	{
 		ui.statusBar->clearMessage();
@@ -358,6 +359,8 @@ void GMainWindow::on_btnStart_clicked()
 	argList.append("-outdir");
 	argList.append(ui.txtOutputDir->text());
 
+    if (ui.cbxNoHeader->isChecked())
+        argList.append("-noheader");
 	// process program options
     if (ui.chkDifferencing->isChecked())
     {
@@ -1021,6 +1024,8 @@ void GMainWindow::listACustomContextMenuRequested(const QPoint &pos)
 	QAction *aItem = 0;
 	aItem = menu.addAction("Remove All Files/Folders", this, SLOT(removeAllFilesA()));
 	menu.exec(this->mapToGlobal(pos));
+    //Warning fix 11.25.16
+    //(void)aItem;
 }
 
 /*!
@@ -1034,6 +1039,9 @@ void GMainWindow::listBCustomContextMenuRequested(const QPoint &pos)
 	QAction *aItem = 0;
 	aItem = menu.addAction("Remove All Files/Folders", this, SLOT(removeAllFilesB()));
 	menu.exec(this->mapToGlobal(pos));
+
+    //Warning fix
+    //(void)aItem;
 }
 
 /*!
@@ -1703,3 +1711,52 @@ void GMainWindow::dragEnterEvent(QDragEnterEvent *ev)
         ev->acceptProposedAction();
     }
 }
+
+/*
+    Oct 22 2016
+    button used for choosing custom header text file
+*/
+void GMainWindow::on_btnCustomHeader_clicked()
+{
+    ui.statusBar->showMessage(tr("Loading file browser..."));
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Open File"), "", tr("Text File (*.txt)"));
+    userHeaderFile = fileName.toUtf8().constData();
+    ui.txtHeader->setText(fileName);
+}
+
+/*
+    Oct 22 2016
+    check box for no header
+*/
+
+void GMainWindow::on_cbxNoHeader_clicked()
+{
+    if (ui.cbxNoHeader->checkState() == Qt::Checked){
+        ui.btnCustomHeader->setEnabled(false);
+        ui.txtHeader->setEnabled(false);
+    } else {
+        ui.btnCustomHeader->setEnabled(true);
+        ui.txtHeader->setEnabled(true);
+    }
+    ui.txtHeader->setText(QString(""));
+}
+
+void GMainWindow::on_txtHeader_textChanged(const QString &arg1)
+{
+    QString fileName = ui.txtHeader->text();
+    userHeaderFile = fileName.toUtf8().constData();
+
+}
+
+void GMainWindow::on_txtHeader_editingFinished()
+{
+    QString fileName = ui.txtHeader->text();
+    QFileInfo check_file(fileName);
+    if (!check_file.exists() || !check_file.isFile() || !fileName.endsWith(".txt")){
+        QMessageBox msgBox;
+        msgBox.setText("Invalid header text file path! No header is shown by default.");
+        msgBox.exec();
+    }
+}
+

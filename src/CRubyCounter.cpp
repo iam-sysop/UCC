@@ -14,8 +14,10 @@ CRubyCounter::CRubyCounter()
 {
 	classtype = RUBY;
 	language_name = "Ruby";
-
-	file_extension.push_back(".rb");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("Ruby", file_extension);
+	//file_extension.push_back(".rb");
 
 	QuoteStart = "\"'%/<";
 	QuoteEnd = "\"'/";

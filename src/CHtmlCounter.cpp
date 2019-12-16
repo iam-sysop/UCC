@@ -15,7 +15,10 @@ CHtmlCounter::CHtmlCounter()
 	classtype = HTML;
 	language_name = "HTML";
 
-	file_extension.push_back(".*htm");
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("HTML", file_extension);
+    
+	//file_extension.push_back(".*htm");
 
 	BlockCommentStart.push_back("<!--");
 	BlockCommentEnd.push_back("-->");

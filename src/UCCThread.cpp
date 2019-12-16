@@ -28,11 +28,6 @@
 * See UCC_Multithreading_Notes.doc for older Design and Performance details.
 */
 
-/* Modification: 2016.01; USC
-*   Fixed mingw 4.9.1 compilation errors */
-#ifdef WIN32
-#include <system_error>
-#endif
 // Get Public Thread interfaces.  This MUST be first for this file.
 #include "UCCThread.h"
 
@@ -41,11 +36,15 @@
 #include <sstream>
 #include <stdexcept>
 #include <ctime>
+#include <string.h>		// 2016 Fix early setup compile Error so later Link Error with Boost is easy to see
 
 using namespace std;
 
 #ifdef	WIN32
 	#define		ENABLE_EXCEPTION_CLAUSES
+	#if (_MSC_VER >= 1600)		// Visual Studio 2010 or higher (or equivalent)
+		#define		CLAUSE_SYSTEM_ERROR_OK
+	#endif
 #endif
 
 #ifdef DARWIN		// MacIntosh OSX
@@ -127,6 +126,9 @@ using namespace std;
 #include "CmpMngr.h"
 
 extern DiffTool * pDiffTool;
+
+// This is declared in UCCGlobals.h  BUT do NOT include UCCGlobals.h here!  So declared here as well.		
+extern	string	main_parse_path_file;		// 2016
 
 // Number of installed CPU cores
 unsigned int	num_HW_cores = 1;
@@ -409,6 +411,8 @@ void _prv_SaveOrAddError( const unsigned int threadIdx, UserIF * userIF,
 
 		// WORK: Read Physical lines of a single file
 					bool					main_trim_leading;		//!< true is default, false for Fortran and Python
+                    // 2016 Current file being processed		
+					string					current_path_file;
 	};
 
 	void	_prv_Init_threadStatus( _prv_threadStatus & rThStatus )
@@ -483,6 +487,7 @@ void _prv_SaveOrAddError( const unsigned int threadIdx, UserIF * userIF,
 		rThStatus.check_match = false;
 
 		rThStatus.main_trim_leading = true;
+        rThStatus.current_path_file = "";		// 2016
 	}
 
 
@@ -677,7 +682,9 @@ Of couse, I may have missed a few spots...
 //#endif
 			continue;
 		}
-
+        		
+		pStatus->current_path_file = "";		// 2016
+        
 		srcFileName = g_threads_file_names[ thr_array_idx ];
 
 		if ( ( GET_TO_WORK == pStatus->main_WantsAction )
@@ -989,7 +996,7 @@ Of couse, I may have missed a few spots...
 						else
 							oneline = CUtil::TrimString( oneline, 1 );	// trim Trailing only
 						if ( oneline.size() )
-							CUtil::ReplaceSmartQuotes( oneline );
+							oneline = CUtil::ReplaceSmartQuotes( oneline );
 
 						// Use lineElement inside the call to push_back to prevent memory leaks
 						// This will show up for a Debug build but may not show for a Release build
@@ -1076,14 +1083,15 @@ catch(const std::range_error& e)
 	thread_exception_type = EXCEPTION_RANGE_ERROR;
 	thread_exception_msg = e.what();
 }
-
-catch(const std::system_error& e)
-{
-	// this executes if above throws std::system_error
-	thread_exception_type = EXCEPTION_SYSTEM_ERROR;
-	thread_exception_msg = e.what();
-}
+#ifdef CLAUSE_SYSTEM_ERROR_OK
+	catch(const std::system_error& e)
+	{
+		// this executes if above throws std::system_error
+		thread_exception_type = EXCEPTION_SYSTEM_ERROR;
+		thread_exception_msg = e.what();
+	}
 #endif
+#endif	// #ifdef ENABLE_EXCEPTION_CLAUSES
 catch(const std::runtime_error& e) 
 {
 	// this executes if above throws std::runtime_error (base class rule)
@@ -1191,12 +1199,16 @@ if ( EXCEPTION_DID_NOT_HAPPEN != thread_exception_type )
 		iter->second = 0;
 	}
 	myCounterForEachLanguage.clear();
-
+    
+    pStatus->current_path_file = "";		// 2016
+    
 	if ( thread_restart_needed )
 		pStatus->work_ThreadState = THREAD_RESTART_NEEDED;
 	else
 		pStatus->work_ThreadState = THREAD_HAS_EXITED;
 
+    //warning fix 11.25.16. DO NOT USE THIS VARIABLE AFTER THIS.
+    //(void) have_done_work;
 	return;
 }
 
@@ -1619,6 +1631,24 @@ void ReadSrcFile( const unsigned int					threadIdx,
 			pCounter->total_filesA++;
 		else
 			pCounter->total_filesB++;
+        
+/*Enable this to TEST Signal handling showing file(s) being parsed		
+#define	TEST_SIGSEG	
+        
+#ifdef	TEST_SIGSEG		
+		bool	force_Signal = false;
+		if ( ( MAIN_THREAD_INDEX == threadIdx ) && ( 200 < pCounter->total_filesA ) )	// Force an access violation for Testing		
+			force_Signal = true;		
+		else		
+		if ( (threadIdx + 1) * 200 < pCounter->total_filesA )	// Force an access violation for Testing with multiple threads		
+			force_Signal = true;		
+		if ( true == force_Signal )		
+		{		
+			int * pInt = NULL;		
+			int k = *pInt;			// Use of NULL pointer  SIGSEGV on Windows		
+			printf( "Kablooie ! ! ! %d", k );	// This print NEVER happens...		
+		}		
+#endif*/
 		
 		// deal with every specific kind of WEB
 		if (fileclass == WEB)
@@ -1760,7 +1790,7 @@ void ReadSrcFile( const unsigned int					threadIdx,
 				//	oneline = CUtil::TrimString( oneline, 1 );	// trim Trailing only
 
 				if ( oneline.size() )
-					CUtil::ReplaceSmartQuotes(oneline);    // Modification: 2011.10
+					oneline = CUtil::ReplaceSmartQuotes(oneline);    // Modification: 2011.10
 				
 				// Moved element(lineNum, oneline); as lineElement  
 				// inside call below to prevent Debug build memory leaks.
@@ -2086,6 +2116,7 @@ int DiffPairsInList( const unsigned int					threadIdx,
 		inc_amount = 1;
 	unsigned int	UI_count_down = inc_amount;
 #define		UI_DIFF_UPDATE_COUNT	5
+	string diffDetails;
 
 //		BIG Loop to process all the Matched Pairs
 //
@@ -2253,24 +2284,28 @@ int DiffPairsInList( const unsigned int					threadIdx,
 				unmatchedDup = false;
 		}
 
-        // Before Compare, output paired file names into file_dump.txt       Modification: 2014.08  
-        // Use pointer to diff tool class to use from potential thread code  Modification: 2015.12
-		if ( MAIN_THREAD_INDEX == threadIdx )
+		// this makes sure that if one of the files was unmatched it will just compare it against an empty set
+		diffDetails = pDiffManager->Compare(firstFile, secondFile, match_threshold);
+
+		// Use pointer to diff tool class to use from potential thread code  Modification: 2015.12
+		//Only output modified files in outfile_file_dump  Modification: 2016.10
+		if (!diffDetails.empty() && MAIN_THREAD_INDEX == threadIdx)
 		{
-			if ( pDiffTool->outfile_file_dump )
+			if (pDiffTool->outfile_file_dump)
 			{
 				if ((*myI).second.first == NULL) {
-					pDiffTool->outfile_file_dump << "NA" <<endl;
+					pDiffTool->outfile_file_dump << "NA" << endl;
 				}
 				else {
-					pDiffTool->outfile_file_dump << (*myI).second.first->second.file_name <<endl;
+					pDiffTool->outfile_file_dump << (*myI).second.first->second.file_name << endl;
 				}
 				if ((*myI).second.second == NULL) {
-					pDiffTool->outfile_file_dump << "NA" <<endl;
+					pDiffTool->outfile_file_dump << "NA" << endl;
 				}
 				else {
-					pDiffTool->outfile_file_dump << (*myI).second.second->second.file_name<<endl;
+					pDiffTool->outfile_file_dump << (*myI).second.second->second.file_name << endl;
 				}
+				pDiffTool->outfile_file_dump << diffDetails << endl;
 				pDiffTool->outfile_file_dump.flush();	// Save in case of LOW Memory
 			}
 		}
@@ -2726,6 +2761,8 @@ int DupCheckLanguages( unsigned int					threadIdx,
 		// Release memory used
 		FreeLangsHeaders( langs );
 	}
+	//Warning fix 11.25.16. DO NOT USE THIS VARIABLE AFTER THIS.
+	//(void)prev_count_done;
 
 	return	error_count;
 }
@@ -3192,6 +3229,8 @@ bool FindDuplicateFor( CmpMngr					*	pDiffManager,
 		// cout << endl << "   Files loaded: " << load_count << endl << flush;
 #endif
 	}
+    //Warning fix 11.25.16. DO NOT USE THIS VARIABLE AFTER THIS.
+    //(void)myCheckMatch;
 
 	return foundDup;
 }
@@ -3586,6 +3625,13 @@ int ReadFilesInList( const unsigned int					threadIdx,
 		}
 	}		//	END		LOOP through the given file list
 
+    //Warning fix 11.25.16. DO NOT USE THIS VARIABLE AFTER THIS.
+  //  (void) OK_to_process;
+    //Warning fix 11.25.16. DO NOT USE THIS VARIABLE AFTER THIS.
+   // (void) readThisFile;
+	//Warning fix 11.25.16.DO NOT USE THIS VARIABLE AFTER THIS.
+	//(void) prev_count_done;
+
 	return error_count;
 }
 
@@ -3625,7 +3671,27 @@ void ProcessSourceListFile( const unsigned int threadIdx, UserIF * userIF,
 	// Exceptions within this File Analysis & Counter upper level Caller
 	unsigned int	analyze_exception_type = EXCEPTION_DID_NOT_HAPPEN;
 	string			analyze_exception_msg;
-
+    
+    // 2016   Save  Path and File  in case a Signal happens		
+	if ( MAIN_THREAD_INDEX == threadIdx )		
+		main_parse_path_file = parse_file_name;		
+#ifdef		ENABLE_THREADS		
+	else		
+	{		
+		if ( threadIdx < g_threads_status_in_use )		
+		{		
+			g_threads_status[ threadIdx ].current_path_file = parse_file_name;		
+		}		
+		else		
+		{		
+			// Possible Invalid Thread Index given as input. May be due to thread start/stop operations		
+			// Not considered a Defect here unless there is more evidence		
+			main_parse_path_file = "?";		
+		}		
+	}		
+#endif		// END  2016   Save  Path and File  in case a Signal happens		
+    
+    
 	// handle any exception that may occur un-handled in the counting functions
 	try     // Modification: 2011.05
 	{
@@ -3752,13 +3818,13 @@ void ProcessSourceListFile( const unsigned int threadIdx, UserIF * userIF,
 		analyze_exception_type = EXCEPTION_RANGE_ERROR;
 		analyze_exception_msg = e.what();
 	}
-#ifdef WIN32
-	catch(const std::system_error& e)
-	{
-		// this executes if above throws std::system_error
-		analyze_exception_type = EXCEPTION_SYSTEM_ERROR;
-		analyze_exception_msg = e.what();
-	}
+#ifdef CLAUSE_SYSTEM_ERROR_OK
+		catch(const std::system_error& e)
+		{
+			// this executes if above throws std::system_error
+			analyze_exception_type = EXCEPTION_SYSTEM_ERROR;
+			analyze_exception_msg = e.what();
+		}
 #endif
 	catch(const std::runtime_error& e) 
 	{
@@ -4341,9 +4407,10 @@ void CombineThreadResults()
 		extern	SourceFileList SourceFileA;
 		extern	SourceFileList SourceFileB;
 		SourceFileList & rDestFiles = (my_useListA) ? SourceFileA: SourceFileB;
-
+		
 		CounterForEachLangType::iterator itDestStart = g_MainThread_CounterForEachLanguage->begin();
 		CounterForEachLangType::iterator itDestEnd   = g_MainThread_CounterForEachLanguage->end();
+		
 
 		for ( unsigned int j = 0; j < g_assigned_count; j++ )
 		{
@@ -4418,6 +4485,9 @@ void CombineThreadResults()
 				pDiffTool->dup_unmodifiedLines   += rThreadStatus.dup_unmodifiedLines;
 			}
 		}
+	//Warning fix 11.25.16. DO NOT USE THESE VARIABLES AFTER THIS.
+	//(void)itDestStart;
+	//(void)itDestEnd;
 	}
 
 	// Send back Errors, Uncounted files, Messages
@@ -4521,6 +4591,14 @@ unsigned int NumThreadsBusy( unsigned long & count_done,
 		ThreadSleep( sleep_milliseconds );
 
 	return busy_count;
+}
+// Return the path/file being parsed by a Thread		
+void GetThreadParseFile( const unsigned int threadIdx, string & path_file )		
+{		
+	path_file = "";		
+	if ( threadIdx < g_threads_status_in_use )		
+		path_file = g_threads_status[ threadIdx ].current_path_file;		
+	return;
 }
 #endif
 

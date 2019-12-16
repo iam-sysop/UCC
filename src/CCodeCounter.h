@@ -137,6 +137,10 @@ public:
 	#define SAVE_TO_2(msg) { currentStep2 = msg; currentCode2 = __LINE__; }
 	#define SAVE_TO_3(msg) { currentStep3 = msg; currentCode3 = __LINE__; }
 	#define SAVE_TO_4(msg) { currentStep4 = msg; currentCode4 = __LINE__; }
+    /*Made these public to use them in MainObject.cpp //Ext Team. Modification: 10/16*/
+	StringVector BlockCommentStart;			//!< Block comment start character(s) (ex. /* in C++)
+	StringVector BlockCommentEnd;			//!< Block comment end character(s) (ex. */ in C++)
+	StringVector LineCommentStart;			//!< Single line or embedded comment character(s)
 
 protected:
 	virtual void InitializeResultsCounts(results* result);
@@ -354,9 +358,6 @@ protected:
 	char QuoteEscapeFront;					//!< Escape character for front quote (ex. '\' in C++)
 	char QuoteEscapeRear;					//!< Escape character for rear quote
 	string ContinueLine;					//!< Line continuation character(s) (ex. \\ in C++)
-	StringVector BlockCommentStart;			//!< Block comment start character(s) (ex. /* in C++)
-	StringVector BlockCommentEnd;			//!< Block comment end character(s) (ex. */ in C++)
-	StringVector LineCommentStart;			//!< Single line or embedded comment character(s)
 
 	bool casesensitive;						//!< Is language is case sensitive?
 

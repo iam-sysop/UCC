@@ -146,6 +146,8 @@ void GExtensionDialog::itemCustomContextMenuRequested(const QPoint &pos)
 	aItem = menu.addAction("Revert Selected Language Extensions", this, SLOT(revertSelLangExt()));
 	aItem = menu.addAction("Revert All Language Extensions", this, SLOT(revertAllLangExt()));
 	menu.exec(this->mapToGlobal(pos));
+    //Warning fix 11.25.16
+    //(void)aItem;
 }
 
 /*!

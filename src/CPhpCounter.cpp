@@ -14,8 +14,10 @@ CPhpCounter::CPhpCounter()
 {
 	classtype = PHP;
 	language_name = "PHP";
-
-	file_extension.push_back(".*php");
+    
+    //Modification: 11.2016 Ext-4
+    file_extension = CUtil::getExtensionsToLanguage("PHP", file_extension);
+	//file_extension.push_back(".*php");
 
 	QuoteStart = "\"'";
 	QuoteEnd = "\"'";

@@ -178,6 +178,9 @@ int PrintFileHeader( ofstream &pout, const string &title, const string &cmd = ""
 
 int PrintFileHeaderLine( ofstream &pout, const string &line );
 
+// Modification 2016.12
+int PrintFileFooter(ofstream &pout);
+
 int PrintCountResults( CounterForEachLangType & CounterForEachLanguage,
 						const bool useListA = true, const string &outputFileNamePrePend = "",
 						StringVector* filesToPrint = NULL, const bool excludeFiles = true );

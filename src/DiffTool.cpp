@@ -1415,7 +1415,10 @@ void DiffTool::ProcessPairs()
 
 	if ( errList.size() )
 		userIF->updateProgress( errList );
-
+    //Warning fix 11.25.16. DO NOT USE THIS VARIABLE AFTER THIS.
+    //(void)error_count;
+    //Warning fix 11.25.16. DO NOT USE THIS VARIABLE AFTER THIS.
+    //(void)count_done;
 	return;
 }
 
@@ -1535,10 +1538,15 @@ void DiffTool::PrintMatchedPairs()
 		if (print_csv)
 			pairFileCSV << fileA << "," << fileB << endl;
 	}
-	if (print_ascii || print_legacy)
+	if (print_ascii || print_legacy) {
+		PrintFileFooter(pairFile);
 		pairFile.close();
-	if (print_csv)
+	}
+	if (print_csv) {
+		PrintFileFooter(pairFileCSV);
 		pairFileCSV.close();
+	}
+		
 }
 
 /*!
@@ -2085,12 +2093,14 @@ void DiffTool::PrintDiffResults()
 	if (print_ascii || print_legacy)
 	{
 		outfile_diff_results.close();
+		PrintFileFooter(outfile_diff_results);
 		if (printDup)
 			dup_outfile_diff_results.close();
 	}
 	if (print_csv)
 	{
 		outfile_diff_csv.close();
+		PrintFileFooter(outfile_diff_csv);
 		if (printDup)
 			dup_outfile_diff_csv.close();
 	}

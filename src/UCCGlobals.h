@@ -76,6 +76,7 @@ extern	time_t	time_end_find_duplicates;
 //	PUBLIC declarations of Global values which are changed from the MAIN Thread ONLY
 //
 extern	string		cmdLine;							//!< Executed command line string
+extern  string      userHeaderFile;                     //!< Custom Header file path
 
 extern	bool		isDiff;								//!< Has differencing been requested (-d)?
 // extern	bool	visualDiff;							// Visual diff to file and HTML, must explictly declare extern elsewhere
@@ -99,6 +100,8 @@ extern	bool	g_discard_lines_after_process;			// Discard Physical and Logical sou
 extern	bool print_ascii;								//!< Print ASCII text report files
 extern	bool print_legacy;								//!< Print legacy formatted ASCII text report files
 extern	bool print_unified;								//!< Print all counting files in a single unified file
+extern  bool remove_Header;                             //!< Remove Header from output files if set to True
+
 
 extern	bool g_no_warnings_to_UI;						//!< Suppress Warning messages to UI if true.  Still gets logged.
 
@@ -122,5 +125,6 @@ extern	StringVector duplicateFilesInB2;				//!< List of duplicate files in basel
 extern	SourceFileList SourceFileA;						//!< List of source files in baseline A
 extern	SourceFileList SourceFileB;						//!< List of source files in baseline B
 
+extern	string	main_parse_path_file;					//!< Path and file name being parsed if only single thread  2016
 
 #endif	// #ifndef UCC_GLOBALS_H

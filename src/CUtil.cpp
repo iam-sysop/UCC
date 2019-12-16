@@ -398,6 +398,187 @@ void SavePerformanceStats( const string time_str )
 //	there is no protection via implementation hiding as all these are also public.
 //
 
+/*/*Modification: 11.2016 Ext-4 Starts*/
+void CUtil::allocate() {
+
+	std::vector<std::string> ada_vec;
+	ada_vec.push_back(".ada"); ada_vec.push_back(".a"); ada_vec.push_back(".adb"); ada_vec.push_back(".ads");
+	dict["Ada"] = ada_vec;
+	dictCopy["Ada"] = ada_vec;
+
+	std::vector<std::string> assembly_vec;
+	assembly_vec.push_back(".asm"); assembly_vec.push_back(".s"); assembly_vec.push_back(".asm.ppc");
+	dict["Assembly"] = assembly_vec;
+	dictCopy["Assembly"] = assembly_vec;
+
+	std::vector<std::string> dos_vec;
+	dos_vec.push_back(".bat");
+	dict["DOS_Batch"] = dos_vec;
+	dictCopy["DOS_Batch"] = dos_vec;
+
+	std::vector<std::string> bash_vec;
+	bash_vec.push_back(".sh"); bash_vec.push_back(".ksh");
+	dict["Bash"] = bash_vec;
+	dictCopy["Bash"] = bash_vec;
+
+	std::vector<std::string> cobol_vec;
+	cobol_vec.push_back(".cbl"); cobol_vec.push_back(".cob"); cobol_vec.push_back(".cpy");
+	dict["COBOL"] = cobol_vec;
+	dictCopy["COBOL"] = cobol_vec;
+
+	std::vector<std::string> coldfu_vec;
+	coldfu_vec.push_back(".*cfm");
+	dict["ColdFusion"] = coldfu_vec;
+	dictCopy["ColdFusion"] = coldfu_vec;
+    
+    std::vector<std::string> cfs_vec;
+	cfs_vec.push_back(".cfs");
+	dict["CFScript"] = cfs_vec;
+	dictCopy["CFScript"] = cfs_vec;
+
+	std::vector<std::string> cshell_vec;
+	cshell_vec.push_back(".csh"); cshell_vec.push_back(".tcsh");
+	dict["C-Shell"] = cshell_vec;
+	dictCopy["C-Shell"] = cshell_vec;
+
+	std::vector<std::string> ccpp_vec;
+	ccpp_vec.push_back(".cpp"); ccpp_vec.push_back(".c"); ccpp_vec.push_back(".cc"); ccpp_vec.push_back(".cxx"); ccpp_vec.push_back(".inl");
+	ccpp_vec.push_back(".h"); ccpp_vec.push_back(".hh"); ccpp_vec.push_back(".hpp"); ccpp_vec.push_back(".hxx"); ccpp_vec.push_back(".inc");
+	dict["C_CPP"] = ccpp_vec;
+	dictCopy["C_CPP"] = ccpp_vec;
+
+	std::vector<std::string> csharp_vec;
+	csharp_vec.push_back(".cs");
+	dict["C#"] = csharp_vec;
+	dictCopy["C#"] = csharp_vec;
+
+	std::vector<std::string> css_vec;
+	css_vec.push_back(".css");
+	dict["CSS"] = css_vec;
+	dictCopy["CSS"] = css_vec;
+
+	std::vector<std::string> fortran_vec;
+	fortran_vec.push_back(".f");	fortran_vec.push_back(".for");   fortran_vec.push_back(".f77");   fortran_vec.push_back(".f90");   fortran_vec.push_back(".f95");
+	fortran_vec.push_back(".f03"); fortran_vec.push_back(".hpf");
+	dict["Fortran"] = fortran_vec;
+	dictCopy["Fortran"] = fortran_vec;
+
+	std::vector<std::string> html_vec;
+	html_vec.push_back(".*htm");
+	dict["HTML"] = html_vec;
+	dictCopy["HTML"] = html_vec;
+
+	std::vector<std::string> idl_vec;
+	idl_vec.push_back(".pro"); idl_vec.push_back(".sav");
+	dict["IDL"] = idl_vec;
+	dictCopy["IDL"] = idl_vec;
+
+	std::vector<std::string> java_vec;
+	java_vec.push_back(".java");
+	dict["Java"] = java_vec;
+	dictCopy["Java"] = java_vec;
+
+	std::vector<std::string> javascript_vec;
+	javascript_vec.push_back(".js");
+	dict["JavaScript"] = javascript_vec;
+	dictCopy["JavaScript"] = javascript_vec;
+
+	std::vector<std::string> makefile_vec;
+	makefile_vec.push_back(".make");   makefile_vec.push_back(".makefile");
+	dict["Makefile"] = makefile_vec;
+	dictCopy["Makefile"] = makefile_vec;
+
+	std::vector<std::string> matlab_vec;
+	matlab_vec.push_back(".m");
+	dict["MATLAB"] = matlab_vec;
+	dictCopy["MATLAB"] = matlab_vec;
+
+	std::vector<std::string> nextmidas_vec;
+	nextmidas_vec.push_back(".mm");
+	dict["NeXtMidas"] = nextmidas_vec;
+	dictCopy["NeXtMidas"] = nextmidas_vec;
+
+	std::vector<std::string> xmidas_vec;
+	xmidas_vec.push_back(".txt");
+	dict["X-Midas"] = xmidas_vec;
+	dictCopy["X-Midas"] = xmidas_vec;
+
+	std::vector<std::string> pascal_vec;
+	pascal_vec.push_back(".pas"); pascal_vec.push_back(".p"); pascal_vec.push_back(".pp"); pascal_vec.push_back(".pa3"); pascal_vec.push_back(".pa4"); 					pascal_vec.push_back(".pa5");
+	dict["Pascal"] = pascal_vec;
+	dictCopy["Pascal"] = pascal_vec;
+
+	std::vector<std::string> perl_vec;
+	perl_vec.push_back(".pl"); perl_vec.push_back(".pm");
+	dict["Perl"] = perl_vec;
+	dictCopy["Perl"] = perl_vec;
+
+	std::vector<std::string> php_vec;
+	php_vec.push_back(".*php");
+	dict["PHP"] = php_vec;
+	dictCopy["PHP"] = php_vec;
+
+
+	std::vector<std::string> python_vec;
+	python_vec.push_back(".py");
+	dict["Python"] = python_vec;
+	dictCopy["Python"] = python_vec;
+
+
+	std::vector<std::string> ruby_vec;
+	ruby_vec.push_back(".rb");
+	dict["Ruby"] = ruby_vec;
+	dictCopy["Ruby"] = ruby_vec;
+
+	std::vector<std::string> scala_vec;
+	scala_vec.push_back(".scala");
+	dict["Scala"] = scala_vec;
+	dictCopy["Scala"] = scala_vec;
+
+
+	std::vector<std::string> sql_vec;
+	sql_vec.push_back(".sql");
+	dict["SQL"] = sql_vec;
+	dictCopy["SQL"] = sql_vec;
+
+	std::vector<std::string> vb_vec;
+	vb_vec.push_back(".vb"); vb_vec.push_back(".frm"); vb_vec.push_back(".mod"); vb_vec.push_back(".cls"); vb_vec.push_back(".bas");
+	dict["Visual_Basic"] = vb_vec;
+	dictCopy["Visual_Basic"] = vb_vec;
+
+	std::vector<std::string> vbscript_vec;
+	vbscript_vec.push_back(".vbs");
+	dict["VBScript"] = vbscript_vec;
+	dictCopy["VBScript"] = vbscript_vec;
+
+	std::vector<std::string> verilog_vec;
+	verilog_vec.push_back(".v"); verilog_vec.push_back(".sv"); verilog_vec.push_back(".svi"); verilog_vec.push_back(".vlib"); verilog_vec.push_back(".svlib"); 				verilog_vec.push_back(".vh"); verilog_vec.push_back(".svh");
+	dict["Verilog"] = verilog_vec;
+	dictCopy["Verilog"] = verilog_vec;
+
+	std::vector<std::string> vhdl_vec;
+	vhdl_vec.push_back(".vhd"); vhdl_vec.push_back(".vhdl");
+	dict["VHDL"] = vhdl_vec;
+	dictCopy["VHDL"] = vhdl_vec;
+
+	std::vector<std::string> xml_vec;
+	xml_vec.push_back(".*xml");
+	dict["XML"] = xml_vec;
+	dictCopy["XML"] = xml_vec;
+
+}
+StringVector CUtil::getExtensionsToLanguage(string lang, StringVector fileExtension)
+{
+	std::vector<string> myvector = dict[lang];
+	vector<string>::iterator it;
+	//StringVector fileExtension;
+	for (it = myvector.begin(); it < myvector.end(); it++)
+	{
+		fileExtension.push_back(*it);
+	}
+	return fileExtension;
+}
+/*Modification: 11.2016 Ext-4 ends*/
 
 /*!
 * 1. Function Description: 
@@ -984,6 +1165,7 @@ string CUtil::ExtractFilepath(const string &filepath)
     else
         return "";
 }
+
 
 // Helper used for smarter Estimates to help with RAM usage.
 /*!
@@ -1599,13 +1781,14 @@ string CUtil::ClearRedundantSpaces(const string &str)
 */
 
 // MAke the change to do the below in-place
-void CUtil::ReplaceSmartQuotes( string &str)
+string CUtil::ReplaceSmartQuotes( const string &str1)
 {
+    string str = str1;
     std::replace( str.begin(), str.end(), static_cast<char>(static_cast<unsigned char>(145)), '\'' );
     std::replace( str.begin(), str.end(), static_cast<char>(static_cast<unsigned char>(146)), '\'' );
     std::replace( str.begin(), str.end(), static_cast<char>(static_cast<unsigned char>(147)), '\"' );
     std::replace( str.begin(), str.end(), static_cast<char>(static_cast<unsigned char>(148)), '\"' );
-    return;
+    return str;
 }
 
 
